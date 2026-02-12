@@ -426,7 +426,7 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
 window.addEventListener("focus", () => {
-  updateLiveUI();  // ✅ Works in APK!
+  location.reload();  // ❌ Breaks APK
 });
 
   window.addEventListener("storage", (e) => {
@@ -636,3 +636,4 @@ function getTotalUniqueScheduledMinutes(tt) {
   return total;
 
 }
+
