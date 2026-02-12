@@ -153,18 +153,21 @@ function getCurrentMainEvent() {
 
 // Helper function – put this OUTSIDE of render(), for example right after render() ends
 function handleStartClick() {
+  console.log("▶️ [APK DEBUG] Start button CLICKED!");
   const name     = this.dataset.name;
   const start    = this.dataset.start;
-  const phase    = Number(this.dataset.phase) || 0; // Default to 0 if missing
-  const severity = Number(this.dataset.severity) || 1; // Default to 1 if missing
-
+  const phase    = Number(this.dataset.phase) || 0;
+  const severity = Number(this.dataset.severity) || 1;
+  console.log("▶️ [APK DEBUG] Event:", name, "| Phase:", phase);
+  
   startMainEvent(name, start, phase, severity);
 }
 
 function handleWaterClick() {
+  console.log("💧 [APK DEBUG] Water button CLICKED!");
   const slot = Number(this.dataset.slot);
   const startMinute = Number(this.dataset.start);
-  console.log("Water Done clicked for slot:", slot, "start:", startMinute);
+  console.log("💧 [APK DEBUG] Slot:", slot, "| Start:", startMinute);
   markWater(slot, startMinute);
 }
 
@@ -286,14 +289,22 @@ function render() {
 // ✅ NEW FUNCTION: Attach event listeners to ALL buttons
 function attachAllEventListeners() {
   // Attach water button listeners
-  document.querySelectorAll('.water-btn').forEach(btn => {
+  const waterBtns = document.querySelectorAll('.water-btn');
+  console.log("🔧 [APK DEBUG] Attaching water buttons:", waterBtns.length);
+  waterBtns.forEach((btn, index) => {
     btn.addEventListener('click', handleWaterClick);
+    console.log(`   → Water button ${index} attached`);
   });
 
   // Attach event start button listeners
-  document.querySelectorAll('.start-btn').forEach(btn => {
+  const startBtns = document.querySelectorAll('.start-btn');
+  console.log("🔧 [APK DEBUG] Attaching start buttons:", startBtns.length);
+  startBtns.forEach((btn, index) => {
     btn.addEventListener('click', handleStartClick);
+    console.log(`   → Start button ${index} attached`);
   });
+  
+  console.log("✅ [APK DEBUG] All event listeners attached successfully");
 }
 
 /* ========= START MAIN EVENT ========= */
@@ -425,9 +436,11 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
-window.addEventListener("focus", () => {
-  location.reload();  // ❌ Breaks APK
-});
+  // ✅ FIXED: Changed from location.reload() to updateLiveUI()
+  // This prevents infinite reload loop in APK version
+  window.addEventListener("focus", () => {
+    updateLiveUI();
+  });
 
   window.addEventListener("storage", (e) => {
     if (e.key === "timetable" || e.key === "timetableUpdated") {
@@ -634,6 +647,4 @@ function getTotalUniqueScheduledMinutes(tt) {
   total += currentEnd - currentStart;
 
   return total;
-
 }
-
