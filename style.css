@@ -1,0 +1,428 @@
+/* ================= GLOBAL ================= */
+
+* {
+  box-sizing: border-box;
+  font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background: linear-gradient(135deg, #f7f3eb, #eef6f8);
+  color: #2b2b2b;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ================= HEADER ================= */
+
+header {
+  padding: 18px 12px 10px;
+  text-align: center;
+}
+
+header h1 {
+  margin: 0;
+  font-size: 1.7rem;
+  font-weight: 600;
+  letter-spacing: 0.2px;
+}
+
+header div {
+  margin-top: 6px;
+  font-size: 0.9rem;
+  color: #5f6b73;
+}
+
+/* ================= MAIN ================= */
+
+main {
+  flex: 1;
+  padding: 18px 14px 90px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 18px;
+}
+
+/* ================= CARD ================= */
+
+/* ================= CARD (ELEGANT) ================= */
+
+.card {
+  width: 100%;
+  max-width: 420px;
+  padding: 22px 22px 20px;
+  border-radius: 20px;
+
+  background: linear-gradient(
+    180deg,
+    rgba(255,255,255,0.96),
+    rgba(255,255,255,0.92)
+  );
+
+  box-shadow:
+    0 20px 45px rgba(0,0,0,0.10),
+    0 6px 14px rgba(0,0,0,0.06);
+
+  backdrop-filter: blur(6px);
+  animation: cardEnter 0.35s ease;
+}
+
+@keyframes cardEnter {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* ================= CARD TYPOGRAPHY ================= */
+
+.card h2 {
+  margin: 0 0 12px;
+  font-size: 1.35rem;
+  font-weight: 600;
+  color: #1e2a32;
+  letter-spacing: 0.3px;
+}
+
+.card p {
+  margin: 6px 0;
+  font-size: 0.92rem;
+  color: #4a4a4a;
+  line-height: 1.4;
+}
+
+/* Subtle divider */
+.card p + p {
+  margin-top: 8px;
+}
+
+/* ================= STATUS (Started / Pending) ================= */
+
+.status-started {
+  margin-top: 14px;
+  padding: 10px 14px;
+  border-radius: 14px;
+
+  display: flex;
+  align-items: center;
+  gap: 10px;
+
+  background: linear-gradient(
+    135deg,
+    rgba(46,204,113,0.15),
+    rgba(46,204,113,0.08)
+  );
+
+  color: #1f7a55;
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.status-started::before {
+  content: "";
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: #2ecc71;
+  box-shadow: 0 0 0 4px rgba(46,204,113,0.18);
+}
+
+.status-pending {
+  margin-top: 14px;
+  padding: 10px 14px;
+  border-radius: 14px;
+
+  background: linear-gradient(
+    135deg,
+    rgba(255,193,7,0.18),
+    rgba(255,193,7,0.10)
+  );
+
+  color: #9a6700;
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+/* ================= PRIMARY BUTTON (INSIDE CARD) ================= */
+
+.start-btn {
+  width: 100%;
+  margin-top: 18px;
+  padding: 12px 16px;
+  border-radius: 16px;
+
+  background: linear-gradient(135deg, #4f9ecb, #2c7aa1);
+  color: #ffffff;
+  font-size: 0.95rem;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+
+  box-shadow:
+    0 12px 28px rgba(44,122,161,0.35),
+    inset 0 1px 0 rgba(255,255,255,0.25);
+
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.start-btn:hover {
+  transform: translateY(-1px);
+  box-shadow:
+    0 16px 36px rgba(44,122,161,0.45),
+    inset 0 1px 0 rgba(255,255,255,0.25);
+}
+
+.start-btn:active {
+  transform: scale(0.98);
+}
+
+/* ================= STATUS TEXT ================= */
+
+.status-started {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 10px;
+  font-weight: 600;
+  color: #1f7a55;
+}
+
+.status-started::before {
+  content: "";
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #2ecc71;
+}
+
+.status-pending {
+  color: #9a6700;
+  font-weight: 600;
+}
+
+/* ================= ADMIN EVENT ROW ================= */
+
+.event-row {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.event-row label {
+  font-size: 0.75rem;
+  color: #666;
+}
+
+.event-row input,
+.event-row select {
+  width: 100%;
+  padding: 9px 12px;
+  border-radius: 10px;
+  border: 1px solid #ddd;
+  font-size: 0.9rem;
+  background: #fafafa;
+}
+
+.event-row input:focus,
+.event-row select:focus {
+  outline: none;
+  border-color: #8cbcd0;
+  background: #fff;
+}
+
+/* ================= BUTTONS ================= */
+
+button {
+  border: none;
+  border-radius: 14px;
+  padding: 11px 16px;
+  font-size: 0.95rem;
+  cursor: pointer;
+  background: #e9f1f5;
+  color: #1f4f63;
+  transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.2s;
+}
+
+button:hover {
+  background: #d7e8ef;
+  box-shadow: 0 6px 14px rgba(0,0,0,0.08);
+}
+
+button:active {
+  transform: scale(0.97);
+}
+
+/* PRIMARY ACTION (Start / Mark) */
+.start-btn {
+  width: 100%;
+  margin-top: 14px;
+  background: linear-gradient(135deg, #4f9ecb, #2c7aa1);
+  color: #fff;
+  font-weight: 600;
+  box-shadow: 0 10px 24px rgba(44,122,161,0.35);
+}
+
+.start-btn:hover {
+  background: linear-gradient(135deg, #3e8bb6, #236685);
+}
+
+/* Delete button */
+.event-row button {
+  background: #fbeaea;
+  color: #a33;
+}
+
+.event-row button:hover {
+  background: #f5cfcf;
+}
+
+/* ================= FOOTER ================= */
+
+footer {
+  position: fixed;
+  bottom: 12px;
+  left: 0;
+  right: 0;
+  padding: 10px 12px;
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  background: transparent;
+}
+
+footer button {
+  min-width: 90px;
+  background: #ffffff;
+  box-shadow: 0 6px 16px rgba(0,0,0,0.10);
+  font-weight: 600;
+}
+
+/* ================= CANVAS (CHARTS) ================= */
+
+canvas {
+  max-width: 100%;
+  height: auto;
+}
+
+/* ================= MOBILE TWEAK ================= */
+
+@media (max-width: 480px) {
+  header h1 {
+    font-size: 1.45rem;
+  }
+
+  .card {
+    padding: 16px;
+  }
+}
+/* ===== LIVE TIME DISPLAY ===== */
+
+.live-time {
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: #1f4f63;
+  margin: 6px 0 2px;
+}
+
+.live-date {
+  font-size: 0.85rem;
+  color: #777;
+  margin-bottom: 10px;
+}
+.live-clock {
+  text-align: center;
+  font-size: 2rem;
+  font-weight: 600;
+  margin-top: 12px;
+  margin-bottom: 6px;
+  letter-spacing: 1px;
+  color: #1f4f63;
+}
+.history-day-card:hover {
+  background: #f0f8ff;
+  border: 1px solid #2196f3;
+  transform: scale(1.02);
+  transition: all 0.2s;
+}
+/* ================= ADMIN PANEL UPGRADE ================= */
+
+/* ================= ADMIN WHITE PROFESSIONAL ================= */
+
+.admin-body {
+  background: #ffffff;
+}
+
+.admin-body header h1 {
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  color: #1e2a32;
+}
+
+.admin-body header div {
+  color: #6b7280;
+  font-size: 0.9rem;
+}
+
+.admin-card {
+  background: #ffffff;
+  border-radius: 16px;
+  padding: 30px;
+  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.12);
+  border: 1px solid #e5e7eb;
+}
+
+.admin-card h2 {
+  margin-bottom: 20px;
+  font-weight: 600;
+  color: #111827;
+}
+
+.admin-card input {
+  width: 100%;
+  padding: 12px 14px;
+  border-radius: 10px;
+  border: 1px solid #d1d5db;
+  background: #f9fafb;
+  font-size: 0.95rem;
+  transition: 0.2s ease;
+}
+
+.admin-card input:focus {
+  outline: none;
+  background: #ffffff;
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+}
+
+.admin-card button {
+  width: 100%;
+  margin-top: 14px;
+  padding: 12px;
+  border-radius: 10px;
+  background: #111827;
+  color: #ffffff;
+  font-weight: 600;
+  transition: 0.2s ease;
+}
+
+.admin-card button:hover {
+  background: #0000;
+  transform: translateY(-1px);
+}
+
+.system-status {
+  text-align: center;
+}
+
+.system-version {
+  font-size: 11px;
+  opacity: 0.8;        /* slightly higher so red is visible */
+  letter-spacing: 1px;
+  margin-top: 2px;
+color: #e10600;
+}

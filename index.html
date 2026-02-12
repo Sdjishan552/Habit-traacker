@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Discipline Tracker</title>
+
+  <!-- PWA -->
+  <link rel="manifest" href="manifest.json">
+
+  <!-- Styles -->
+  <link rel="stylesheet" href="style.css">
+  <meta name="theme-color" content="#2196f3">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes"> <!-- keep old one for compatibility -->
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<link rel="apple-touch-icon" href="assets/icon-192.png"></head>
+
+<body>
+  
+<div class="system-status">
+  <div id="liveClock" class="live-clock"></div>
+  <div class="system-version">JARVIS v1.1</div>
+</div>
+
+  <!-- HEADER -->
+  <header class="home-header">
+    
+  <h1>Daily Discipline</h1>
+
+  <div class="header-right">
+    <span id="phaseInfo">Loading…</span>
+    <button class="bell-btn" onclick="goNotifications()">🔔</button>
+  </div>
+</header>
+
+
+    <!-- MAIN CONTENT -->
+  <main id="mainContainer">
+    <!-- All cards (events + hydration) will be created here by JavaScript -->
+  </main>
+
+  <!-- FOOTER NAV -->
+  <footer>
+    <button id="historyBtn">📘 History</button>
+    <button id="statsBtn">📊 Stats</button>
+    <button onclick="goAdmin()" title="Admin">⚙️</button>
+    
+  </footer>
+
+  <!-- Core Logic -->
+  <script src="app.js"></script>
+
+  <!-- Admin Navigation -->
+  <script>
+    function goAdmin() {
+      location.href = "admin.html";
+    }
+  </script>
+<script>
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+navigator.serviceWorker.register('service-worker.js')
+        .then(reg => console.log('Service Worker registered', reg))
+        .catch(err => console.error('Service Worker registration failed:', err));
+    });
+  }
+  function goNotifications() {
+  console.log("Bell button clicked!");
+  console.log("Trying to go to: notifications.html");
+  
+  // Try relative path first (most reliable in local files)
+  location.href = "notifications.html";
+  
+  // If that fails in some setups, you can also try:
+  // location.href = "./notifications.html";
+}
+</script>
+</body>
+</html>

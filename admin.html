@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Admin – Timetable</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="style.css">
+
+  <style>
+    .admin-bar {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      background: linear-gradient(135deg, #f7f3eb, #eef6f8);
+      padding: 10px;
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      border-bottom: 1px solid rgba(0,0,0,0.05);
+    }
+  </style>
+</head>
+<body class="admin-body">
+
+
+<header>
+  <h1>Admin Panel</h1>
+  <div>Restricted Access</div>
+</header>
+
+<div class="admin-bar" id="adminBar" style="display:none">
+  <button onclick="addEvent()">➕ Add Event</button>
+  <button onclick="goHome()">⬅ Home</button>
+  <button onclick="masterReset()" style="background:#e53935; color:white; border:none; padding:8px 16px; border-radius:6px; cursor:pointer;">
+    🗑 Master Reset (Delete ALL Data)
+  </button>
+</div>
+<main id="main"></main>
+
+<!-- ALL JAVASCRIPT MUST GO HERE -->
+<script>
+/* ================= PIN LOGIC ================= */
+const main = document.getElementById("main");
+const adminBar = document.getElementById("adminBar");
+
+function askForPin() {
+  const savedPin = localStorage.getItem("adminPin");
+
+  if (!savedPin) {
+    main.innerHTML = `
+      <div class="card admin-card">
+
+        <h2>Set Admin PIN</h2>
+        <input id="newPin" type="password" placeholder="Create PIN">
+        <button onclick="setPin()">Set PIN</button>
+      </div>
+    `;
+  } else {
+    main.innerHTML = `
+      <div class="card admin-card">
+
+        <h2>Enter Admin PIN</h2>
+        <input id="pinInput" type="password" placeholder="Enter PIN">
+        <button onclick="verifyPin()">Unlock</button>
+      </div>
+    `;
+  }
+}
+
+function setPin() {
+  const pin = document.getElementById("newPin").value.trim();
+  if (pin.length < 4) {
+    alert("PIN must be at least 4 digits.");
+    return;
+  }
+  localStorage.setItem("adminPin", pin);
+  alert("PIN set. Remember it.");
+  loadAdmin();
+}
+
+function verifyPin() {
+  const pin = document.getElementById("pinInput").value.trim();
+  if (pin === localStorage.getItem("adminPin")) {
+    loadAdmin();
+  } else {
+    alert("Wrong PIN.");
+  }
+}
+
+/* ================= TIMETABLE LOGIC ================= */
+
+let timetable = [];
+
+function loadTimetable() {
+  try {
+    const raw = localStorage.getItem("timetable");
+    if (!raw) return [];
+    const data = JSON.parse(raw);
+    if (!Array.isArray(data)) return [];
+    const timeRegex = /^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/;
+    const filtered = data.filter(e => {
+      if (!e || typeof e.start !== "string" || typeof e.end !== "string" || !e.name) return false;
+      if (!timeRegex.test(e.start) || !timeRegex.test(e.end)) return false;
+      const startMin = timeToMinutes(e.start);
+      const endMin = timeToMinutes(e.end);
+      return !isNaN(startMin) && !isNaN(endMin) && startMin < endMin;
+    });
+    // Save cleaned version
+    localStorage.setItem("timetable", JSON.stringify(filtered));
+    return filtered;
+  } catch (err) {
+    console.error("Timetable corrupted. Resetting.", err);
+    localStorage.removeItem("timetable");
+    return [];
+  }
+}
+
+function timeToMinutes(t) {
+  const [h, m] = t.split(":").map(Number);
+  return h * 60 + m;
+}
+
+function saveEvent(index) {
+  const rows = document.querySelectorAll(".event-row");
+  const row = rows[index];
+
+  const name     = row.querySelector(".name").value.trim();
+  const start    = row.querySelector(".start").value;
+  const end      = row.querySelector(".end").value;
+  const phase    = Number(row.querySelector(".phase").value);
+  const severity = Number(row.querySelector(".severity").value);
+  const timeRegex = /^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/;
+if (!timeRegex.test(start) || !timeRegex.test(end)) {
+  alert("Invalid time format. Use HH:MM like 08:00 or 14:30.");
+  return;
+}
+  if (!name || !start || !end) {
+    alert("Please fill: event name, start time and end time.");
+    return;
+  }
+
+  const startMin = timeToMinutes(start);
+  const endMin   = timeToMinutes(end);
+
+  if (startMin >= endMin) {
+    alert("Start time must be earlier than end time.");
+    return;
+  }
+
+  // Update the existing event
+  timetable[index] = { name, start, end, phase, severity };
+
+  // Save
+  localStorage.setItem("timetable", JSON.stringify(timetable));
+  localStorage.setItem("timetableUpdated", Date.now());
+
+  alert(`"${name}" saved / updated successfully.`);
+
+  // Refresh the list (very important!)
+  render();
+}
+
+function loadAdmin() {
+  adminBar.style.display = "flex";
+  timetable = loadTimetable();
+
+  if (timetable.length === 0) {
+    timetable = [{
+      name: "Upcoming Event",
+      start: "05:30",
+      end: "06:00",
+      phase: 1,
+      severity: 3
+    }];
+  }
+  render();
+}
+
+function render() {
+  // Sort events by start time every time we show them
+  timetable.sort((a, b) => timeToMinutes(a.start) - timeToMinutes(b.start));
+
+  main.innerHTML = "";
+
+  if (timetable.length === 0) {
+    main.innerHTML = '<div class="card" style="text-align:center; padding:30px; color:#666;">No events yet.<br><br>Click "➕ Add Event" to create one.</div>';
+    return;
+  }
+
+  timetable.forEach((event, i) => {
+    const div = document.createElement("div");
+    div.className = "card event-row";
+    div.innerHTML = `
+      <input class="name" placeholder="Event name" value="${event.name || ''}">
+      
+      <label>Start</label>
+      <input class="start" type="time" value="${event.start || ''}">
+      
+      <label>End</label>
+      <input class="end" type="time" value="${event.end || ''}">
+      
+      <label>Phase</label>
+      <select class="phase">
+        ${[1,2,3,4].map(p => `
+          <option value="${p}" ${p === event.phase ? "selected" : ""}>Phase ${p}</option>
+        `).join("")}
+      </select>
+
+      <label>Severity</label>
+      <select class="severity">
+        <option value="3" ${event.severity === 3 ? "selected" : ""}>3 – Critical</option>
+        <option value="2" ${event.severity === 2 ? "selected" : ""}>2 – Important</option>
+        <option value="1" ${event.severity === 1 ? "selected" : ""}>1 – Light</option>
+      </select>
+
+      <div style="margin-top: 16px; display: flex; gap: 12px; flex-wrap: wrap;">
+        <button onclick="saveEvent(${i})">💾 Save / Update</button>
+        <button onclick="removeEvent(${i})">🗑 Delete</button>
+      </div>
+    `;
+    main.appendChild(div);
+  });
+}
+
+function addEvent() {
+  timetable.unshift({
+    name: "",
+    start: "",
+    end: "",
+    phase: 1,
+    severity: 3
+  });
+  render();
+}
+
+function removeEvent(index) {
+  if (confirm("Are you sure you want to delete this event? Yes or No")) {
+    timetable.splice(index, 1);
+    localStorage.setItem("timetable", JSON.stringify(timetable));
+    localStorage.setItem("timetableUpdated", Date.now());
+    render();
+  }
+}
+
+function goHome() {
+  location.href = "index.html";
+}
+
+/* ================= INIT ================= */
+function masterReset() {
+  if (!confirm("This will DELETE ALL DATA permanently:\n- Timetable\n- All daily logs & scores\n- Hydration reminders\n- Admin PIN\n\nThe app will become brand new again.\n\nAre you sure?")) {
+    return;
+  }
+
+  // Clear everything related to the app
+  localStorage.clear();  // Easiest and safest way — removes ALL localStorage keys
+
+  alert("All data has been deleted. The app is now reset.\nYou'll need to set a new PIN when accessing Admin again.");
+
+  // Reload the page to show fresh state
+  location.reload();
+}
+askForPin();
+</script>
+
+</body>
+</html>

@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Notifications</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header>
+  <h1>Activity Overview</h1>
+</header>
+
+<main id="notifyContainer"></main>
+
+<footer>
+  <button onclick="goHome()">⬅ Back</button>
+</footer>
+
+<script src="app.js"></script>
+
+<script>
+function goHome() {
+  location.href = "index.html";
+}
+
+function formatTime12(timeStr) {
+  const [hourStr, minute] = timeStr.split(":");
+  let hour = parseInt(hourStr);
+  const ampm = hour >= 12 ? "PM" : "AM";
+  hour = hour % 12;
+  hour = hour ? hour : 12;
+  return `${hour}:${minute} ${ampm}`;
+}
+
+function renderNotifications() {
+  const container = document.getElementById("notifyContainer");
+  container.innerHTML = "";
+
+  const timetable = getTimetable();
+  const log = getLog();
+  const now = nowMinutes();
+
+  /* =========================
+     1️⃣ Upcoming 3 Events
+  ==========================*/
+  const upcoming = timetable
+    .filter(e => toMinutes(e.start) > now)
+    .sort((a,b) => toMinutes(a.start) - toMinutes(b.start))
+    .slice(0,3);
+
+  const upcomingCard = document.createElement("div");
+  upcomingCard.className = "card";
+  upcomingCard.innerHTML = `
+    <h2>📅 Upcoming (Next 3)</h2>
+    ${upcoming.length ? upcoming.map(e =>
+      `<p>
+        <strong>${e.name}</strong><br>
+        ${formatTime12(e.start)} – ${formatTime12(e.end)}
+      </p>`
+    ).join("") : "<p>No upcoming events.</p>"}
+  `;
+  container.appendChild(upcomingCard);
+
+  /* =========================
+     2️⃣ Past 3 Events (Time-based)
+  ==========================*/
+  const pastEvents = timetable
+    .filter(e => toMinutes(e.end) < now)
+    .sort((a,b) => toMinutes(b.end) - toMinutes(a.end))
+    .slice(0,3);
+
+  const pastCard = document.createElement("div");
+  pastCard.className = "card";
+  pastCard.innerHTML = `
+    <h2>⏪ Past Events (Last 3)</h2>
+    ${pastEvents.length ? pastEvents.map(e => {
+      const entry = log.find(l => l.name === e.name);
+      let status = "⏳ Not Logged";
+
+      if (entry) {
+        if (entry.delay === 999) status = "❌ Missed";
+        else if (entry.score > 0) status = "✅ Completed";
+        else status = "⏱ Late";
+      }
+
+      return `
+        <p>
+          <strong>${e.name}</strong><br>
+          ${formatTime12(e.start)} – ${formatTime12(e.end)}<br>
+          ${status}
+        </p>
+      `;
+    }).join("") : "<p>No past events yet.</p>"}
+  `;
+  container.appendChild(pastCard);
+
+  /* =========================
+     3️⃣ Missed Events Today
+  ==========================*/
+ /* =========================
+   ❌ Missed Events Today (With Time)
+==========================*/
+
+const missedEvents = log.filter(e =>
+  e.delay === 999 && e.name !== "Drink Water"
+);
+
+const missedCard = document.createElement("div");
+missedCard.className = "card";
+
+missedCard.innerHTML = `
+  <h2>❌ Missed Today</h2>
+  ${missedEvents.length ?
+    missedEvents.map(e => {
+      const eventInfo = timetable.find(t => t.name === e.name);
+
+      let timeText = "";
+      if (eventInfo) {
+        timeText = `${formatTime12(eventInfo.start)} – ${formatTime12(eventInfo.end)}`;
+      }
+
+      return `
+        <p>
+          <strong>${e.name}</strong><br>
+          ${timeText}
+        </p>
+      `;
+    }).join("")
+    : "<p>No missed events today.</p>"
+  }
+`;
+
+container.appendChild(missedCard);
+
+
+  /* =========================
+     4️⃣ Hydration Status
+  ==========================*/
+  const hydrationLogs = log.filter(e => e.name === "Drink Water");
+  const missedHydration = hydrationLogs.filter(e => e.delay === 999).length;
+
+  let hydrationMessage = "";
+
+  if (hydrationLogs.length === 0) {
+    hydrationMessage = "No hydration recorded yet.";
+  } else if (missedHydration > 0) {
+    hydrationMessage = `⚠ Missed ${missedHydration} hydration reminder(s).`;
+  } else {
+    hydrationMessage = "✅ Hydration completed so far.";
+  }
+
+  const hydrationCard = document.createElement("div");
+  hydrationCard.className = "card";
+  hydrationCard.innerHTML = `
+    <h2>💧 Hydration</h2>
+    <p>${hydrationMessage}</p>
+  `;
+  container.appendChild(hydrationCard);
+}
+
+renderNotifications();
+</script>
+
+
+</body>
+</html>

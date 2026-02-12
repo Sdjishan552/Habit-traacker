@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Event Performance Details</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+  body { background: #f5f5f5; color: #333; font-family: Arial, sans-serif; }
+  header { 
+    background: #2c3e50; 
+    color: white; 
+    padding: 20px; 
+    border-bottom: 4px solid #3498db; 
+  }
+  .range-buttons button {
+    padding: 10px 16px;
+    background: #3498db;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+  }
+  .range-buttons button:hover { background: #2980b9; }
+  main { padding: 20px; max-width: 1200px; margin: 0 auto; }
+  .card {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    padding: 20px;
+    margin-bottom: 32px;
+  }
+  h3 { color: #2c3e50; margin-top: 0; }
+  canvas { max-height: 320px !important; width: 100% !important; }
+  .stats-text p { margin: 6px 0; font-size: 15px; }
+  .positive { color: #27ae60; font-weight: bold; }
+  .negative { color: #e74c3c; font-weight: bold; }
+</style>
+</head>
+<body>
+
+<header>
+  <div style="display:flex; justify-content:space-between; align-items:center;">
+    <h1>Event Performance Trends</h1>
+    <button onclick="goHome()">← Back</button>
+  </div>
+
+  <div class="range-buttons">
+  <button onclick="setRange('day')">Today</button>
+  <button onclick="setRange('week')">7 Days</button>
+  <button onclick="setRange('month')">30 Days</button>
+  <button onclick="setRange('3months')">3 Months</button>
+  <button onclick="setRange('6months')">6 Months</button>
+  <button onclick="setRange('9months')">9 Months</button>
+</div>
+</header>
+
+<main id="chartsContainer">
+  <!-- Charts will be created here dynamically -->
+</main>
+
+<script>
+  let range = "month";  // default
+  let charts = [];
+
+  function goHome() {
+    window.location.href = "stats.html";  // or "index.html" if you prefer
+  }
+
+  function setRange(r) {
+    range = r;
+    drawEventCharts();
+  }
+
+  function getDaysForRange() {
+  if (range === "day") return 1;
+  if (range === "week") return 7;
+  if (range === "month") return 30;
+  if (range === "3months") return 91;     // ≈3 months (13 weeks)
+  if (range === "6months") return 182;    // ≈6 months
+  if (range === "9months") return 274;    // ≈9 months
+  return 30; // fallback
+}
+
+  function formatDateDMY(iso) {
+    if (!iso) return "";
+    const [y, m, d] = iso.split("-");
+    return `${d}-${m}-${y}`;
+  }
+
+  function todayKey(d = new Date()) {
+    return d.toISOString().split("T")[0];
+  }
+
+  function getTimetable() {
+    return JSON.parse(localStorage.getItem("timetable")) || [];
+  }
+
+  function getLogs(daysBack) {
+    const out = [];
+    const today = new Date();
+    for (let i = 0; i < daysBack; i++) {
+      const d = new Date(today);
+      d.setDate(today.getDate() - i);
+      const key = todayKey(d);
+      const log = JSON.parse(localStorage.getItem(key)) || [];
+      out.push({ date: key, log });
+    }
+    return out.reverse();
+  }
+function groupByWeek(labels, values) {
+  if (labels.length <= 7) return { groupedLabels: labels, groupedValues: values }; // keep daily for short ranges
+
+  const grouped = {};
+  values.forEach((val, i) => {
+    const weekNum = Math.floor(i / 7) + 1;
+    if (!grouped[weekNum]) {
+      grouped[weekNum] = { sum: 0, count: 0 };
+    }
+    grouped[weekNum].sum += val;
+    grouped[weekNum].count += 1;
+  });
+
+  const groupedLabels = [];
+  const groupedValues = [];
+  Object.keys(grouped).sort((a,b)=>Number(a)-Number(b)).forEach(w => {
+    groupedLabels.push(`Week ${w}`);
+    groupedValues.push(Math.round(grouped[w].sum / grouped[w].count));
+  });
+
+  return { groupedLabels, groupedValues };
+}
+  function drawEventCharts()
+   {
+    const days = getDaysForRange();
+    const data = getLogs(days);
+    const tt = getTimetable();
+    const container = document.getElementById("chartsContainer");
+    const dLabels = data.map(d => formatDateDMY(d.date));
+
+    // Clear previous charts & content
+    charts.forEach(c => c?.destroy?.());
+    charts = [];
+    container.innerHTML = "";
+
+    if (tt.length === 0) {
+      container.innerHTML = "<p style='text-align:center; color:#aaa;'>No events in timetable yet.</p>";
+      return;
+    }
+
+    if (data.length === 0) {
+      container.innerHTML = "<p style='text-align:center; color:#aaa;'>No data in selected range.</p>";
+      return;
+    }
+
+    // Main events
+    // Main events
+tt.forEach(event => {
+  const name = event.name;
+  const safeId = name.replace(/\s+/g, '_');
+  const maxScore = event.severity * 10;
+
+  let percents = data.map(day => {
+  const entry = day.log.find(e => e.name === name);
+  if (!entry || entry.score == null) return 0;
+  return Math.round((entry.score / maxScore) * 100);
+});
+
+let displayLabels = dLabels;
+let displayPercents = percents;
+
+if (data.length > 7) {
+  const grouped = groupByWeek(dLabels, percents);
+  displayLabels = grouped.groupedLabels;
+  displayPercents = grouped.groupedValues;
+}
+
+  // Calculate progress stats
+  const nonZeroPercents = percents.filter(p => p > 0);
+  const avgPercent = percents.length > 0 ? Math.round(percents.reduce((sum, p) => sum + p, 0) / percents.length) : 0;
+  const progressDelta = percents.length > 1 ? percents[percents.length - 1] - percents[0] : 0;
+  const progressText = progressDelta > 0 ? `+${progressDelta}%` : `${progressDelta}%`;
+  const timesMissed = percents.filter(p => p === 0).length;
+  const bestPercent = Math.max(...percents);
+  const bestDayIndex = percents.indexOf(bestPercent);
+  const bestDay = bestDayIndex >= 0 ? dLabels[bestDayIndex] : 'N/A';
+
+  const card = document.createElement("div");
+  card.className = "card";
+  card.innerHTML = `
+    <h3>${name} (Phase ${event.phase}, Severity ${event.severity}) ${data.length > 7 ? '<small>(Weekly Averages)</small>' : ''}</h3>    <canvas id="evt_${safeId}"></canvas>
+    <div style="margin-top:12px; font-size:14px; color:#ccc;">
+      <p><strong>Average:</strong> ${avgPercent}%</p>
+      <p><strong>Progress (start to end):</strong> ${progressText}</p>
+      <p><strong>Times Missed:</strong> ${timesMissed} / ${percents.length} days</p>
+      <p><strong>Best Day:</strong> ${bestPercent}% on ${bestDay}</p>
+    </div>
+  `;
+  container.appendChild(card);
+
+  const canvas = document.getElementById(`evt_${safeId}`);
+  charts.push(new Chart(canvas, {
+  type: 'line',
+  data: {
+    labels: displayLabels,               // ← changed
+    datasets: [{
+      label: `${name} Performance (%)`,
+      data: displayPercents,             // ← changed
+      borderColor: '#27ae60',
+      backgroundColor: 'rgba(39,174,96,0.15)',
+      fill: true,
+      tension: 0.1,
+      pointRadius: 4,
+      pointBackgroundColor: '#27ae60'
+    }]
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,         // ← important: allows taller charts
+    scales: {
+      y: {
+        min: 0,
+        max: 100,
+        ticks: { stepSize: 20 }
+      },
+      x: {
+        ticks: {
+          autoSkip: false,              // ← NO skipping
+          maxRotation: 45,
+          minRotation: 45,
+          font: { size: 11 }
+        }
+      }
+    },
+    plugins: {
+      legend: { position: 'top' },
+      tooltip: { enabled: true }
+    }
+  }
+}));
+});
+
+    // Hydration chart
+    // Hydration chart
+let hydPercents = data.map(d => {
+  const drinks = d.log.filter(e => e.name === "Drink Water");
+  if (drinks.length === 0) return 0;
+  const done = drinks.filter(e => e.score > 0).length;
+  return Math.round((done / drinks.length) * 100);
+});
+
+let displayHydLabels = dLabels;
+let displayHydPercents = hydPercents;
+
+if (data.length > 7) {
+  const groupedHyd = groupByWeek(dLabels, hydPercents);
+  displayHydLabels = groupedHyd.groupedLabels;
+  displayHydPercents = groupedHyd.groupedValues;
+}
+
+// Calculate progress stats for hydration
+const nonZeroHyd = hydPercents.filter(p => p > 0);
+const avgHyd = hydPercents.length > 0 ? Math.round(hydPercents.reduce((sum, p) => sum + p, 0) / hydPercents.length) : 0;
+const progressHydDelta = hydPercents.length > 1 ? hydPercents[hydPercents.length - 1] - hydPercents[0] : 0;
+const progressHydText = progressHydDelta > 0 ? `+${progressHydDelta}%` : `${progressHydDelta}%`;
+const timesMissedHyd = hydPercents.filter(p => p === 0).length;
+const bestHyd = Math.max(...hydPercents);
+const bestHydIndex = hydPercents.indexOf(bestHyd);
+const bestHydDay = bestHydIndex >= 0 ? dLabels[bestHydIndex] : 'N/A';
+
+const hydCard = document.createElement("div");
+hydCard.className = "card";
+hydCard.innerHTML = `
+  <h3>Hydration Consistency ${data.length > 7 ? '<small>(Weekly Averages)</small>' : ''}</h3>  <canvas id="evt_Hydration"></canvas>
+  <div style="margin-top:12px; font-size:14px; color:#ccc;">
+    <p><strong>Average:</strong> ${avgHyd}%</p>
+    <p><strong>Progress (start to end):</strong> ${progressHydText}</p>
+    <p><strong>Days with 0%:</strong> ${timesMissedHyd} / ${hydPercents.length} days</p>
+    <p><strong>Best Day:</strong> ${bestHyd}% on ${bestHydDay}</p>
+  </div>
+`;
+container.appendChild(hydCard);
+
+const hydCanvas = document.getElementById("evt_Hydration");
+charts.push(new Chart(hydCanvas, {
+  type: 'line',
+  data: {
+    labels: displayHydLabels,            // ← changed
+    datasets: [{
+      label: 'Hydration %',
+      data: displayHydPercents,          // ← changed
+      borderColor: '#2196f3',
+      backgroundColor: 'rgba(33,150,243,0.12)',
+      fill: true,
+      tension: 0.25
+    }]
+  },
+  options: {
+    responsive: true,
+    scales: { y: { min: 0, max: 100 } }
+  }
+}));
+  }
+
+  // Initial load
+  drawEventCharts();
+</script>
+</body>
+</html>

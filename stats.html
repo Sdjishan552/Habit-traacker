@@ -1,0 +1,508 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Discipline & Hydration Stats</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <link rel="stylesheet" href="style.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="app.js"></script>
+</head>
+<body>
+
+<header style="display:flex; flex-direction:column; gap:10px;">
+  <div style="display:flex; justify-content:space-between; align-items:center;">
+<h1>Stats Dashboard</h1>
+<div id="summary"></div>  <!-- NEW: for overall summary text -->    <button onclick="goHome()">⬅ Home</button>
+  </div>
+  <div style="margin: 12px 0;">
+  <button onclick="window.location.href='event-stats.html'" style="padding:10px 20px; font-size:16px; background:#4caf50; color:white; border:none; border-radius:6px; cursor:pointer;">
+    Detailed Event Performance
+  </button>
+</div>
+
+  <div>
+    <button onclick="setRange('day')">Today</button>
+    <button onclick="setRange('week')">This Week</button>
+    <button onclick="setRange('month')">This Month</button>
+  </div>
+</header>
+
+
+<main style="
+  padding:10px;
+  display:flex;
+  flex-direction:column;
+  gap:16px;
+  max-width:900px;
+  margin:0 auto;
+">
+
+  <!-- DISCIPLINE -->
+  <div class="card">
+    <h2>📈 Discipline Trend</h2>
+    <canvas id="lineChart"></canvas>
+  </div>
+
+  <div class="card">
+    <h2>📊 Phase Performance</h2>
+    <canvas id="barChart"></canvas>
+  </div>
+
+  <!-- TIME WASTE -->
+  <div class="card">
+    <h2>⏳ Time Waste (Minutes)</h2>
+    <canvas id="wasteBar"></canvas>
+  </div>
+
+  <div class="card">
+    <h2>⚖️ Productive vs Wasted Time</h2>
+    <canvas id="wastePie"></canvas>
+  </div>
+  <div class="card">
+  <h2>🕒 Start Delay (Minutes)</h2>
+  <canvas id="delayBar"></canvas>
+</div>
+
+  <!-- HYDRATION -->
+  <div class="card">
+    <h2>💧 Hydration Trend</h2>
+    <canvas id="hydrationLine"></canvas>
+  </div>
+
+  <div class="card">
+    <h2>💧 Hydration Consistency</h2>
+    <canvas id="hydrationBar"></canvas>
+  </div>
+
+  <div class="card">
+    <h2>🔥 Severity Loss</h2>
+    <canvas id="pieChart"></canvas>
+  </div>
+</main>
+
+<footer>
+  <button onclick="goHome()">⬅ Home</button>
+</footer>
+
+<script>
+  function goHome() {
+    window.location.href = "index.html";   // ←←← change this filename if needed
+    // Alternative 1: window.history.back();          // goes to previous page in history
+    // Alternative 2: window.location.replace("index.html");
+}
+function formatDateDMY(iso) {
+  if (!iso) return "";
+  const [y, m, d] = iso.split("-");
+  return `${d}-${m}-${y}`;
+}
+
+function toMinutes(t) {
+  if (!t || typeof t !== 'string') return 0;
+  const [h, m] = t.split(":").map(Number);
+  return (isNaN(h) ? 0 : h) * 60 + (isNaN(m) ? 0 : m);
+}
+
+function todayKey(d = new Date()) {
+  return d.toISOString().split("T")[0];
+}
+
+function getTimetable() {
+  return JSON.parse(localStorage.getItem("timetable")) || [];
+}
+
+function getLogs(daysBack) {
+  const out = [];
+  for (let i = 0; i < daysBack; i++) {
+    const d = new Date();
+    d.setDate(d.getDate() - i);
+    const key = todayKey(d);
+    const log = JSON.parse(localStorage.getItem(key));
+    if (log) out.push({ date: key, log });
+  }
+  return out.reverse();
+}
+
+let range = "day";
+let charts = [];
+
+function setRange(r) {
+  range = r;
+  drawCharts();
+}
+
+function getCanvas(id) {
+  const el = document.getElementById(id);
+  if (!el) console.warn(`Canvas #${id} not found in DOM`);
+  return el;
+}
+
+function nowMinutes() {
+  const d = new Date();
+  return d.getHours() * 60 + d.getMinutes();
+}
+
+function drawCharts() {
+  let days = range === "day" ? 1 : range === "week" ? 7 : 30;
+  const data = getLogs(days);
+  const hasAnyLogs = data.some(d => d.log && d.log.length > 0);
+
+  // Destroy old charts + clear canvas safely
+// Destroy old charts + clear canvas safely
+charts.forEach(c => { if (c && typeof c.destroy === 'function') c.destroy(); });
+charts = [];
+// Clear canvas drawings to prevent ghosting
+document.querySelectorAll('canvas').forEach(c => {
+  const ctx = c.getContext('2d');
+  if (ctx) ctx.clearRect(0, 0, c.width, c.height);
+});
+// Clear canvas drawings to prevent ghosting
+document.querySelectorAll('canvas').forEach(c => {
+  const ctx = c.getContext('2d');
+  if (ctx) ctx.clearRect(0, 0, c.width, c.height);
+});
+
+  const today = todayKey();
+  const tt = getTimetable();
+
+  data.forEach(d => {
+  if (d.date === today) {
+    d.log = simulateAutoMissForToday(tt, d.log, nowMinutes());  // Proactively include misses for today
+  }
+});
+  const now = new Date();
+
+  // Auto-finalize pending events for today only
+  data.forEach(d => {
+    if (d.date !== today) return;
+    let updated = false;
+    d.log.forEach(entry => {
+      if (entry.phase === "micro" || entry.phase === "hydration") return;
+      if (entry.score !== null || !entry.started) return;
+
+      const ev = tt.find(e => e.name === entry.name);
+      if (!ev) return;
+
+      if (nowMinutes() >= toMinutes(ev.end)) {
+        const delay = Math.max(0, entry.startedAt - toMinutes(ev.start));
+        let score = 0;
+        if (delay <= 15) {
+          score = entry.severity * 10 - delay;
+          if (score < 0) score = 0;
+        }
+        entry.delay = delay;
+        entry.score = score;
+        updated = true;
+      }
+    });
+    if (updated) {
+      localStorage.setItem(today, JSON.stringify(d.log));
+    }
+  });
+
+  // ──────────────────────────────────────────────
+  // Discipline Trend (Line)
+  // ──────────────────────────────────────────────
+  const dLabels = data.map(d => formatDateDMY(d.date));
+  const dPercents = data.map(d => {
+    let max = 0, got = 0;
+    d.log.forEach(e => {
+      if (e.phase === "micro" || e.phase === "hydration") return;
+      const score = e.score !== null ? e.score : (e.started ? e.severity * 10 : 0);
+      max += e.severity * 10;
+      got += score;
+    });
+    return max ? Math.round((got / max) * 100) : 0;
+  });
+
+  charts.push(new Chart(getCanvas("lineChart"), {
+    type: "line",
+    data: {
+      labels: dLabels.length ? dLabels : ["No data"],
+      datasets: [{
+        label: "Discipline Score (%)",
+        data: dPercents,
+        borderColor: "#2196f3",
+        backgroundColor: "rgba(33, 150, 243, 0.2)",
+        fill: true,
+        tension: 0.2
+      }]
+    },
+    options: {
+      responsive: true,
+      scales: { y: { beginAtZero: true, max: 100 } }
+    }
+  }));
+
+  // ──────────────────────────────────────────────
+  // Phase Performance (Bar)
+  // ──────────────────────────────────────────────
+  const pSum = {1:0,2:0,3:0,4:0}, pMax = {1:0,2:0,3:0,4:0};
+  data.forEach(d => d.log.forEach(e => {
+    if (e.phase === "micro" || e.phase === "hydration") return;
+    const score = e.score !== null ? e.score : (e.started ? e.severity * 10 : 0);
+    pSum[e.phase] += score;
+    pMax[e.phase] += e.severity * 10;
+  }));
+
+  charts.push(new Chart(getCanvas("barChart"), {
+    type: "bar",
+    data: {
+      labels: ["Phase 1", "Phase 2", "Phase 3", "Phase 4"],
+      datasets: [{
+        label: "Average %",
+        data: [1,2,3,4].map(p => pMax[p] ? Math.round(pSum[p] / pMax[p] * 100) : 0),
+        backgroundColor: ["#4caf50", "#2196f3", "#ff9800", "#f44336"]
+      }]
+    },
+    options: {
+      responsive: true,
+      scales: { y: { beginAtZero: true, max: 100 } }
+    }
+  }));
+
+// ──────────────────────────────────────────────
+// Time Waste (Bar) + Productive vs Wasted (Pie)
+// ──────────────────────────────────────────────
+let totalWaste = 0, totalScheduled = 0;
+const wLabels = [], wData = [];
+
+data.forEach(d => {
+  let dayWaste = 0, dayScheduled = 0;
+  
+  if (tt.length > 0) {
+dayScheduled = getTotalUniqueScheduledMinutes(tt);    
+    let earnedMinutes = 0;
+    d.log.forEach(entry => {
+      if (entry.phase === "micro" || entry.phase === "hydration") return;
+      const ev = tt.find(te => te.name === entry.name);
+      if (!ev) return;
+      
+      const duration = toMinutes(ev.end) - toMinutes(ev.start);
+      const maxScore = entry.severity * 10;
+      const tempScore = entry.score !== null ? entry.score : (entry.started ? maxScore : 0);
+      earnedMinutes += Math.round(duration * (tempScore / maxScore));
+    });
+    
+    dayWaste = dayScheduled - earnedMinutes;
+    if (dayWaste < 0) dayWaste = 0;
+    
+    // If no main discipline events were even started → full day wasted
+    if (!d.log.some(e => e.phase !== "micro" && e.phase !== "hydration")) {
+      dayWaste = dayScheduled;
+    }
+  }
+  
+  wLabels.push(formatDateDMY(d.date));
+  wData.push(dayWaste);
+  
+  totalScheduled += dayScheduled;
+  totalWaste += dayWaste;
+});
+
+const totalProductive = totalScheduled - totalWaste;
+const hasMeaningfulWasteData = totalScheduled > 0;
+
+if (!hasMeaningfulWasteData) {
+  charts.push(new Chart(getCanvas("wastePie"), {
+    type: "pie",
+    data: { labels: ["No events"], datasets: [{ data: [1], backgroundColor: ["#9e9e9e"] }] },
+    options: { responsive: true, plugins: { title: { display: true, text: "No Data" } } }
+  }));
+  
+  charts.push(new Chart(getCanvas("wasteBar"), {
+    type: "bar",
+    data: { labels: ["No Data"], datasets: [{ label: "Minutes Wasted", data: [0], backgroundColor: "#bdbdbd" }] },
+    options: { responsive: true, scales: { y: { beginAtZero: true } } }
+  }));
+} else {
+  charts.push(new Chart(getCanvas("wastePie"), {
+    type: "pie",
+    data: {
+      labels: ["Productive Time", "Wasted Time"],
+      datasets: [{ data: [totalProductive, totalWaste], backgroundColor: ["#66bb6a", "#ef5350"] }]
+    },
+    options: {
+      responsive: true,
+      plugins: { legend: { position: "bottom" } }
+    }
+  }));
+
+  charts.push(new Chart(getCanvas("wasteBar"), {
+    type: "bar",
+    data: {
+      labels: wLabels,
+      datasets: [{ label: "Minutes Wasted", data: wData, backgroundColor: "rgba(239, 83, 80, 0.6)" }]
+    },
+    options: { responsive: true, scales: { y: { beginAtZero: true } } }
+  }));
+}
+// ──────────────────────────────────────────────
+// Start Delay (Minutes)
+// ──────────────────────────────────────────────
+const delayData = data.map(d => {
+  let total = 0;
+  let count = 0;
+  d.log.forEach(e => {
+    if (e.phase !== "micro" && e.phase !== "hydration" && 
+        typeof e.delay === 'number' && e.delay >= 0 && e.delay !== 999) {
+      total += e.delay;
+      count++;
+    }
+  });
+  return count > 0 ? Math.round(total / count) : 0;
+});
+
+charts.push(new Chart(getCanvas("delayBar"), {
+  type: "bar",
+  data: {
+    labels: dLabels.length ? dLabels : ["No data"],
+    datasets: [{
+      label: "Avg Start Delay (min)",
+      data: delayData,
+      backgroundColor: "rgba(255, 159, 64, 0.7)"
+    }]
+  },
+  options: {
+    responsive: true,
+    scales: { y: { beginAtZero: true } }
+  }
+}));
+  // ──────────────────────────────────────────────
+  // Severity Loss (Pie) – improved no-data
+  // ──────────────────────────────────────────────
+  const loss = {1:0, 2:0, 3:0};
+  const maxLoss = {1:0, 2:0, 3:0};
+  let hasSeverityData = false;
+
+  data.forEach(d => d.log.forEach(e => {
+    if (e.phase === "micro" || e.phase === "hydration") return;
+    if (e.score == null || e.delay === 999) return;
+    const m = e.severity * 10;
+    loss[e.severity] += m - e.score;
+    maxLoss[e.severity] += m;
+    hasSeverityData = true;
+  }));
+
+  if (!hasSeverityData || Object.values(maxLoss).every(v => v === 0)) {
+    charts.push(new Chart(getCanvas("pieChart"), {
+      type: "pie",
+      data: {
+        labels: ["No completed events"],
+        datasets: [{ data: [1], backgroundColor: ["#9e9e9e"] }]
+      },
+      options: {
+        responsive: true,
+        plugins: {
+          legend: { position: "bottom" },
+          title: { display: true, text: "Severity Loss\n(No Data Yet)", font: { size: 16 } }
+        }
+      }
+    }));
+  } else {
+    const lossPct = {
+      1: maxLoss[1] ? Math.round(loss[1] / maxLoss[1] * 100) : 0,
+      2: maxLoss[2] ? Math.round(loss[2] / maxLoss[2] * 100) : 0,
+      3: maxLoss[3] ? Math.round(loss[3] / maxLoss[3] * 100) : 0,
+    };
+
+    charts.push(new Chart(getCanvas("pieChart"), {
+      type: "pie",
+      data: {
+        labels: ["Severity 1", "Severity 2", "Severity 3"],
+        datasets: [{
+          data: [lossPct[1], lossPct[2], lossPct[3]],
+          backgroundColor: ["#81c784", "#ffb74d", "#e57373"]
+        }]
+      },
+      options: {
+        responsive: true,
+        plugins: { legend: { position: "bottom" } }
+      }
+    }));
+  }
+
+  // ──────────────────────────────────────────────
+  // Hydration Trend (Line) + Consistency (Bar)
+  // ──────────────────────────────────────────────
+  const hLabels = data.map(d => formatDateDMY(d.date));
+  const hPercents = data.map(d => {
+    const drinks = d.log.filter(e => e.name === "Drink Water");
+    const done = drinks.filter(e => e.score > 0).length;
+    return drinks.length ? Math.round((done / drinks.length) * 100) : 0;
+  });
+  const hDone = data.map(d => {
+    return d.log.filter(e => e.name === "Drink Water" && e.score > 0).length;
+  });
+
+  charts.push(new Chart(getCanvas("hydrationLine"), {
+    type: "line",
+    data: {
+      labels: hLabels.length ? hLabels : ["No data"],
+      datasets: [{
+        label: "Hydration %",
+        data: hPercents,
+        borderColor: "#2196f3",
+        backgroundColor: "rgba(33, 150, 243, 0.2)",
+        fill: true
+      }]
+    },
+    options: {
+      responsive: true,
+      scales: { y: { beginAtZero: true, max: 100 } }
+    }
+  }));
+
+  charts.push(new Chart(getCanvas("hydrationBar"), {
+    type: "bar",
+    data: {
+      labels: hLabels.length ? hLabels : ["No data"],
+      datasets: [{
+        label: "Drink Water Completed",
+        data: hDone,
+        backgroundColor: "#42a5f5"
+      }]
+    },
+    options: {
+      responsive: true,
+      scales: { y: { beginAtZero: true } }
+    }
+  }));
+}
+function simulateAutoMissForToday(tt, log, nowMin) {
+  const updatedLog = [...log];  // Copy to avoid mutating original
+  tt.forEach(ev => {
+    const entry = updatedLog.find(e => e.name === ev.name);
+    if (!entry && nowMin >= toMinutes(ev.end)) {
+      // Temp add missed for calc (don't save to storage)
+      updatedLog.push({
+        name: ev.name,
+        phase: ev.phase,
+        severity: ev.severity,
+        delay: 999,
+        score: 0,
+        autoMissed: true
+      });
+    }
+  });
+  return updatedLog;
+}
+// Initial draw
+drawCharts();
+function masterReset() {
+  if (!confirm("This will DELETE ALL DATA permanently:\n- Timetable\n- All daily logs & scores\n- Hydration reminders\n- Admin PIN\n\nThe app will become brand new again.\n\nAre you sure?")) {
+    return;
+  }
+
+  // Clear everything related to the app
+  localStorage.clear();  // Easiest and safest way — removes ALL localStorage keys
+
+  alert("All data has been deleted. The app is now reset.\nYou'll need to set a new PIN when accessing Admin again.");
+
+  // Reload the page to show fresh state
+  location.reload();
+}
+</script>
+</body>
+</html>
