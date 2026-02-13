@@ -467,6 +467,9 @@ document.addEventListener("DOMContentLoaded", () => {
   // INIT
   requestNotificationPermission();
   updateLiveUI();
+  loadCountdownDate();
+  updateExamCountdown();
+  setInterval(updateExamCountdown, 1000);
 
   setInterval(updateLiveUI, 15 * 1000);
 
@@ -734,6 +737,7 @@ function updateExamCountdown() {
   countdownElement.innerHTML =
     `🎯 ${days}d ${hours}h ${minutes}m ${seconds}s`;
 }
+
 
 
 
