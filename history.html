@@ -146,8 +146,15 @@ else {
     timeWasted += currentEnd - currentStart;
   }
 
-  const totalDelay = mainEvents.reduce((sum, e) => sum + (e.delay || 0), 0);
-  const avgDelay = mainEvents.length ? Math.round(totalDelay / mainEvents.length) : 0;
+  // Only calculate average delay for events that were actually started
+const startedEvents = mainEvents.filter(e => e.delay !== 999);
+
+const totalDelay = startedEvents.reduce((sum, e) => sum + (e.delay || 0), 0);
+
+const avgDelay = startedEvents.length
+  ? Math.round(totalDelay / startedEvents.length)
+  : 0;
+
 
   return {
     percent,
@@ -235,4 +242,5 @@ function goHome() {
 </script>
 
 </body>
+
 </html>
