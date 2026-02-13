@@ -873,16 +873,30 @@ localStorage.setItem("activeFocusEnd", endDate.toISOString());
 
 
   overlay.innerHTML = `
-  <h1>FOCUS MODE</h1>
-  <div id="focusTimerDisplay"></div>
+  <h1 style="
+    font-size: 4rem;
+    font-weight: 900;
+    letter-spacing: 3px;
+    margin-bottom: 40px;
+  ">
+    FOCUS MODE
+  </h1>
+
+  <div id="focusTimerDisplay" style="
+    font-size: 6rem;
+    font-weight: 900;
+    margin-bottom: 40px;
+  "></div>
+
   <button id="exitFocusBtn" style="
-    margin-top:20px;
-    padding:10px 20px;
-    font-size:1rem;
+    padding: 15px 30px;
+    font-size: 1.2rem;
+    font-weight: bold;
   ">
     ❌ Exit
   </button>
 `;
+
 
 
 
@@ -938,16 +952,30 @@ function startFocusTimerFromResume(endDate) {
 
 
   overlay.innerHTML = `
-    <h1>FOCUS MODE (Resumed)</h1>
-    <div id="focusTimerDisplay"></div>
-    <button id="exitFocusBtn" style="
-      margin-top:20px;
-      padding:10px 20px;
-      font-size:1rem;
-    ">
-      ❌ Exit
-    </button>
-  `;
+  <h1 style="
+    font-size: 4rem;
+    font-weight: 900;
+    letter-spacing: 3px;
+    margin-bottom: 40px;
+  ">
+    FOCUS MODE
+  </h1>
+
+  <div id="focusTimerDisplay" style="
+    font-size: 6rem;
+    font-weight: 900;
+    margin-bottom: 40px;
+  "></div>
+
+  <button id="exitFocusBtn" style="
+    padding: 15px 30px;
+    font-size: 1.2rem;
+    font-weight: bold;
+  ">
+    ❌ Exit
+  </button>
+`;
+
 
   document.body.appendChild(overlay);
 
@@ -985,8 +1013,6 @@ function exitFocusMode() {
   const overlay = document.getElementById("focusOverlay");
   if (overlay) overlay.remove();
 }
-
-
 
 
 
