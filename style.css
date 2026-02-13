@@ -452,26 +452,22 @@ color: #e10600;
 }
 
 
-/* ===== ADMIN COUNTDOWN – CLEAN PROFESSIONAL ===== */
+/* ===== ADMIN COUNTDOWN – BLUE CONTROL STYLE ===== */
 
 .admin-bar .countdown-input {
-  background: rgba(225, 6, 0, 0.06);
-  border: 1px solid rgba(225, 6, 0, 0.2);
-  padding: 6px 10px;
-  border-radius: 8px;
+  background: rgba(44, 122, 161, 0.08);
+  border: 1px solid rgba(44, 122, 161, 0.25);
 }
 
 .admin-bar .countdown-input input[type="date"] {
-  border: 1px solid rgba(225, 6, 0, 0.3);
+  border: 1px solid rgba(44, 122, 161, 0.4);
 }
 
 .admin-bar .countdown-input button {
-  background: #e10600;
+  background: linear-gradient(135deg, #4f9ecb, #2c7aa1);
   color: white;
 }
 
 .admin-bar .countdown-input button:hover {
-  background: #b80500;
+  background: linear-gradient(135deg, #3e8bb6, #236685);
 }
-
-
