@@ -765,6 +765,17 @@ function updateHomeStreak() {
     const log = JSON.parse(localStorage.getItem(key));
     if (!log) break;
 
+    // ✅ NEW: If checking today, ensure day is finished
+    if (i === 0) {
+      const dayEnd = getDayEndMinute();
+      const now = nowMinutes();
+
+      if (dayEnd !== null && now < dayEnd) {
+        // Day not finished yet → stop streak calculation here
+        break;
+      }
+    }
+
     const percent = calculateDisciplinePercent(log);
 
     if (percent >= 60) {
