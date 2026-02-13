@@ -923,9 +923,16 @@ font-size: clamp(3rem, 12vw, 5rem);
   const mins = Math.floor(remainingMs / 60000);
   const secs = Math.floor((remainingMs % 60000) / 1000);
 
-  document.getElementById("focusTimerDisplay").innerText =
-    `⏳ ${mins}m ${secs}s remaining`;
-}, 1000);
+  document.getElementById("focusTimerDisplay").innerHTML =
+  `
+  <div style="font-size: clamp(2rem,6vw,3rem); margin-bottom:10px;">
+    ⏳
+  </div>
+  <div style="font-size: clamp(3rem,10vw,5rem); font-weight:900;">
+    ${mins}m ${secs}s
+  </div>
+  `;
+
 
 }
 
@@ -1003,9 +1010,16 @@ font-size: clamp(3rem, 12vw, 5rem);
     const mins = Math.floor(remainingMs / 60000);
     const secs = Math.floor((remainingMs % 60000) / 1000);
 
-    document.getElementById("focusTimerDisplay").innerText =
-      `⏳ ${mins}m ${secs}s remaining`;
-  }, 1000);
+    document.getElementById("focusTimerDisplay").innerHTML =
+  `
+  <div style="font-size: clamp(2rem,6vw,3rem); margin-bottom:10px;">
+    ⏳
+  </div>
+  <div style="font-size: clamp(3rem,10vw,5rem); font-weight:900;">
+    ${mins}m ${secs}s
+  </div>
+  `;
+
 }
 
 
@@ -1017,6 +1031,7 @@ function exitFocusMode() {
   const overlay = document.getElementById("focusOverlay");
   if (overlay) overlay.remove();
 }
+
 
 
 
