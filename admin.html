@@ -173,6 +173,20 @@ function loadAdmin() {
       severity: 3
     }];
   }
+  // Add Countdown Setting Card
+const savedCountdown = localStorage.getItem("countdownTarget");
+
+const countdownCard = document.createElement("div");
+countdownCard.className = "card";
+countdownCard.innerHTML = `
+  <h2>Set Countdown Date</h2>
+  <input type="date" id="adminCountdownDate" 
+         value="${savedCountdown ? new Date(savedCountdown).toISOString().split('T')[0] : ''}">
+  <button onclick="saveAdminCountdown()">Save Countdown</button>
+`;
+
+main.appendChild(countdownCard);
+
   render();
 }
 
@@ -264,4 +278,5 @@ askForPin();
 </script>
 
 </body>
+
 </html>
