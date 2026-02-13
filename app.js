@@ -873,7 +873,7 @@ localStorage.setItem("activeFocusEnd", endDate.toISOString());
 
 
   overlay.innerHTML = `
-  <h1>*FOCUS MODE*</h1>
+  <h1>FOCUS MODE</h1>
   <div id="focusTimerDisplay"></div>
   <button id="exitFocusBtn" style="
     margin-top:20px;
@@ -985,6 +985,7 @@ function exitFocusMode() {
   const overlay = document.getElementById("focusOverlay");
   if (overlay) overlay.remove();
 }
+
 
 
 
