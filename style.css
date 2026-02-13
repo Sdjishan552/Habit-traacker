@@ -53,21 +53,42 @@ main {
   width: 100%;
   max-width: 420px;
   padding: 22px 22px 20px;
-  border-radius: 20px;
+  border-radius: 16px;
 
-  background: linear-gradient(
-    180deg,
-    rgba(255,255,255,0.96),
-    rgba(255,255,255,0.92)
-  );
+  background: #ffffff;
+
+  border-left: 6px solid #e10600; /* JARVIS RED STRIPE */
 
   box-shadow:
-    0 20px 45px rgba(0,0,0,0.10),
-    0 6px 14px rgba(0,0,0,0.06);
+    0 12px 28px rgba(0,0,0,0.08),
+    0 4px 10px rgba(0,0,0,0.04);
 
-  backdrop-filter: blur(6px);
-  animation: cardEnter 0.35s ease;
+  position: relative;
+  overflow: hidden;
+
+  animation: cardEnter 0.3s ease;
 }
+
+/* Ticket cut effect */
+.card::before,
+.card::after {
+  content: "";
+  position: absolute;
+  width: 22px;
+  height: 22px;
+  background: #eef6f8;
+  border-radius: 50%;
+  left: -11px;
+}
+
+.card::before {
+  top: 25%;
+}
+
+.card::after {
+  bottom: 25%;
+}
+
 
 @keyframes cardEnter {
   from {
@@ -478,4 +499,5 @@ color: #e10600;
   letter-spacing: 0.5px;
   padding: 6px 10px;
 }
+
 
