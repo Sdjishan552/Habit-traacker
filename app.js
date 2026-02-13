@@ -883,7 +883,7 @@ localStorage.setItem("activeFocusEnd", endDate.toISOString());
   </h1>
 
   <div id="focusTimerDisplay" style="
-    font-size: 6rem;
+    font-size: 5rem;
     font-weight: 900;
     margin-bottom: 40px;
   "></div>
@@ -962,7 +962,7 @@ function startFocusTimerFromResume(endDate) {
   </h1>
 
   <div id="focusTimerDisplay" style="
-    font-size: 6rem;
+    font-size: 5rem;
     font-weight: 900;
     margin-bottom: 40px;
   "></div>
