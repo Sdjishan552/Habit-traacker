@@ -53,7 +53,7 @@ function renderNotifications() {
   const upcomingCard = document.createElement("div");
   upcomingCard.className = "card";
   upcomingCard.innerHTML = `
-    <h2>📅 Upcoming (Next 3)</h2>
+    <h2>📅 Upcoming</h2>
     ${upcoming.length ? upcoming.map(e =>
       `<p>
         <strong>${e.name}</strong><br>
@@ -74,7 +74,7 @@ function renderNotifications() {
   const pastCard = document.createElement("div");
   pastCard.className = "card";
   pastCard.innerHTML = `
-    <h2>⏪ Past Events (Last 3)</h2>
+    <h2>⏪ Past Events</h2>
     ${pastEvents.length ? pastEvents.map(e => {
       const entry = log.find(l => l.name === e.name);
       let status = "⏳ Not Logged";
@@ -166,3 +166,4 @@ renderNotifications();
 
 </body>
 </html>
+
