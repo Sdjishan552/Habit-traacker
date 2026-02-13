@@ -452,4 +452,26 @@ color: #e10600;
 }
 
 
+/* ===== ADMIN COUNTDOWN – CLEAN PROFESSIONAL ===== */
+
+.admin-bar .countdown-input {
+  background: rgba(225, 6, 0, 0.06);
+  border: 1px solid rgba(225, 6, 0, 0.2);
+  padding: 6px 10px;
+  border-radius: 8px;
+}
+
+.admin-bar .countdown-input input[type="date"] {
+  border: 1px solid rgba(225, 6, 0, 0.3);
+}
+
+.admin-bar .countdown-input button {
+  background: #e10600;
+  color: white;
+}
+
+.admin-bar .countdown-input button:hover {
+  background: #b80500;
+}
+
 
