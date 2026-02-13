@@ -275,8 +275,20 @@ function masterReset() {
   location.reload();
 }
 askForPin();
+
+  function saveAdminCountdown() {
+  const input = document.getElementById("adminCountdownDate");
+  if (!input.value) return;
+
+  const target = new Date(input.value + "T00:00:00");
+  localStorage.setItem("countdownTarget", target.toISOString());
+
+  alert("Countdown date updated successfully.");
+}
+
 </script>
 
 </body>
 
 </html>
+
