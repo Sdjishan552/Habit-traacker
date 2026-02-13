@@ -532,6 +532,45 @@ color: #e10600;
   background: rgba(0,0,0,0.05);
 }
 
+/* ===== ADMIN COUNTDOWN ROUNDED STYLE ===== */
+
+.admin-bar .countdown-input {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+
+  padding: 6px;
+  border-radius: 14px;              /* Rounded container */
+  background: rgba(44,122,161,0.08);
+  border: 1px solid rgba(44,122,161,0.25);
+}
+
+.admin-bar .countdown-input input[type="date"] {
+  border: none;
+  outline: none;
+  background: white;
+
+  padding: 8px 10px;
+  border-radius: 10px;              /* Rounded input */
+  font-size: 14px;
+}
+
+.admin-bar .countdown-input button {
+  padding: 8px 14px;
+  border-radius: 10px;              /* Rounded button */
+  background: linear-gradient(135deg, #4f9ecb, #2c7aa1);
+  color: white;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+.admin-bar .countdown-input button:hover {
+  transform: translateY(-1px);
+  background: linear-gradient(135deg, #3e8bb6, #236685);
+}
+
 
 
 
