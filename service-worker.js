@@ -1,71 +1,78 @@
-// service-worker.js - FIXED FOR APK
-const CACHE_NAME = 'discipline-tracker-v2.0'; // ✅ Changed version to force update
+// service-worker.js - v3.0 - WORKING VERSION
+const CACHE_NAME = 'discipline-tracker-v3.0';
 const urlsToCache = [
-  '/',
-  '/index.html',
-  '/style.css',
-  '/manifest.json'
-  // ❌ REMOVED app.js from cache - it was causing stale code issues
+  './index.html',
+  './style.css',
+  './admin.html',
+  './history.html',
+  './stats.html',
+  './notifications.html'
+  // app.js NOT cached - always fetch fresh
 ];
 
-// Install - cache core files only
 self.addEventListener('install', event => {
-  console.log('[SW] Installing service worker v2.0');
+  console.log('[SW v3.0] Installing...');
   event.waitUntil(
-    caches.open(CACHE_NAME).then(cache => {
-      console.log('[SW] Caching core files');
-      return cache.addAll(urlsToCache);
-    })
+    caches.open(CACHE_NAME)
+      .then(cache => {
+        console.log('[SW v3.0] Caching pages');
+        return cache.addAll(urlsToCache).catch(err => {
+          console.error('[SW v3.0] Cache failed:', err);
+          // Don't fail install if cache fails
+          return Promise.resolve();
+        });
+      })
   );
-  self.skipWaiting(); // Force immediate activation
+  self.skipWaiting();
 });
 
-// Activate - clear old caches
 self.addEventListener('activate', event => {
-  console.log('[SW] Activating service worker v2.0');
+  console.log('[SW v3.0] Activating...');
   event.waitUntil(
     caches.keys().then(cacheNames => {
       return Promise.all(
         cacheNames.map(cacheName => {
           if (cacheName !== CACHE_NAME) {
-            console.log('[SW] Deleting old cache:', cacheName);
+            console.log('[SW v3.0] Deleting old cache:', cacheName);
             return caches.delete(cacheName);
           }
         })
       );
     })
   );
-  return self.clients.claim(); // Take control immediately
+  return self.clients.claim();
 });
 
-// Fetch - NETWORK FIRST for app.js, cache for others
 self.addEventListener('fetch', event => {
   const url = new URL(event.request.url);
   
-  // ✅ CRITICAL: Always fetch app.js fresh from network
-  if (url.pathname.endsWith('app.js')) {
-    console.log('[SW] Fetching app.js from network (no cache)');
+  // ALWAYS fetch app.js fresh - NEVER cache it
+  if (url.pathname.includes('app.js')) {
+    console.log('[SW v3.0] Fetching app.js from network');
     event.respondWith(
-      fetch(event.request)
-        .catch(() => {
-          console.log('[SW] Network failed for app.js');
-          return new Response('alert("App offline - please connect to internet");', {
-            headers: { 'Content-Type': 'application/javascript' }
-          });
-        })
+      fetch(event.request).catch(() => {
+        return new Response('console.error("Offline - app.js failed");', {
+          headers: { 'Content-Type': 'application/javascript' }
+        });
+      })
     );
     return;
   }
   
-  // For other files, try cache first, then network
+  // For HTML/CSS: Network first, fallback to cache
   event.respondWith(
-    caches.match(event.request).then(response => {
-      if (response) {
-        console.log('[SW] Serving from cache:', url.pathname);
+    fetch(event.request)
+      .then(response => {
+        // Clone and cache the response
+        const responseToCache = response.clone();
+        caches.open(CACHE_NAME).then(cache => {
+          cache.put(event.request, responseToCache);
+        });
         return response;
-      }
-      console.log('[SW] Fetching from network:', url.pathname);
-      return fetch(event.request);
-    })
+      })
+      .catch(() => {
+        // If network fails, try cache
+        return caches.match(event.request);
+      })
   );
 });
