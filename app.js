@@ -396,16 +396,36 @@ function finalizeMainEvent(entry) {
   saveLog(getLog());
 }
 
-/* ========= AUTO-MISS ========= */
 function autoMiss() {
   const now = nowMinutes();
   const timetable = getTimetable();
   const log = getLog();
 
   timetable.forEach(event => {
+    const startMin = toMinutes(event.start);
+    const endMin = toMinutes(event.end);
     const entry = log.find(e => e.name === event.name);
 
-    if (now >= toMinutes(event.end) && !entry) {
+    const slotKey = `${todayKey()}_${event.name}_start`;
+
+    // ✅ NEW: Auto notify when event start time arrives
+    if (now >= startMin && now < endMin && !entry) {
+      if (!localStorage.getItem("notified_" + slotKey)) {
+
+        notify(
+          "⏰ Event Started",
+          `${event.name} has started`,
+          slotKey
+        );
+
+        playAlertSound(slotKey);
+
+        localStorage.setItem("notified_" + slotKey, "yes");
+      }
+    }
+
+    // Existing Auto Miss Logic
+    if (now >= endMin && !entry) {
       log.push({
         name: event.name,
         phase: event.phase,
@@ -416,12 +436,14 @@ function autoMiss() {
       });
     }
 
-    if (entry && entry.started && entry.score === null && now >= toMinutes(event.end)) {
+    if (entry && entry.started && entry.score === null && now >= endMin) {
       finalizeMainEvent(entry);
     }
   });
 
   saveLog(log);
+}
+
   
   // Penalize ignored hydration slots at end of day
   const dayStart = getDayStartMinute();
@@ -787,6 +809,7 @@ function updateHomeStreak() {
 
   streakElement.innerHTML = `🔥 ${streak} Day Streak`;
 }
+
 
 
 
