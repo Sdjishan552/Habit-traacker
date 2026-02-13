@@ -962,7 +962,7 @@ function startFocusTimerFromResume(endDate) {
 
   overlay.innerHTML = `
   <h1 style="
-    font-size: 4rem;
+    font-size: clamp(2.5rem, 8vw, 4rem);
     font-weight: 900;
     letter-spacing: 3px;
     margin-bottom: 40px;
@@ -1031,6 +1031,7 @@ function exitFocusMode() {
   const overlay = document.getElementById("focusOverlay");
   if (overlay) overlay.remove();
 }
+
 
 
 
