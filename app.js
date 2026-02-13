@@ -688,6 +688,53 @@ function getTotalUniqueScheduledMinutes(tt) {
 
   return total;
 }
+/* ========= DYNAMIC COUNTDOWN ========= */
+
+let countdownTarget = null;
+
+function setCountdownDate() {
+  const input = document.getElementById("countdownDate");
+  if (!input.value) return;
+
+  countdownTarget = new Date(input.value + "T00:00:00");
+  localStorage.setItem("countdownTarget", countdownTarget.toISOString());
+
+  updateExamCountdown();
+}
+
+function loadCountdownDate() {
+  const saved = localStorage.getItem("countdownTarget");
+  if (saved) {
+    countdownTarget = new Date(saved);
+  }
+}
+
+function updateExamCountdown() {
+  const countdownElement = document.getElementById("examCountdown");
+  if (!countdownElement) return;
+
+  if (!countdownTarget) {
+    countdownElement.innerHTML = "⏳ No countdown set";
+    return;
+  }
+
+  const now = new Date();
+  const diff = countdownTarget - now;
+
+  if (diff <= 0) {
+    countdownElement.innerHTML = "🎉 Countdown Completed!";
+    return;
+  }
+
+  const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+  const hours = Math.floor((diff / (1000 * 60 * 60)) % 24);
+  const minutes = Math.floor((diff / (1000 * 60)) % 60);
+  const seconds = Math.floor((diff / 1000) % 60);
+
+  countdownElement.innerHTML =
+    `🎯 ${days}d ${hours}h ${minutes}m ${seconds}s`;
+}
+
 
 
 
