@@ -266,7 +266,12 @@ function render() {
         // Add notification and sound (only once per slot)
         const slotKey = `${todayKey()}_water_${waterInfo.slot}`;
         if (!localStorage.getItem("notified_" + slotKey)) {
-            notify("💧 Drink Water", "Time for your hourly hydration!");
+            notify(
+  "💧 Drink Water",
+  "Time for your hourly hydration!",
+  slotKey
+);
+
             localStorage.setItem("notified_" + slotKey, "yes");
             playAlertSound(slotKey);
         }
@@ -690,6 +695,7 @@ function getTotalUniqueScheduledMinutes(tt) {
 
   return total;
 }
+
 
 
 
