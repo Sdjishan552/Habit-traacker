@@ -311,15 +311,7 @@ function render() {
 
       container.appendChild(eventCard);
 
-      // Notify for new events (only once)
-      if (!entry) {
-        const eventKey = `${todayKey()}_event_${event.name}`;
-        if (!localStorage.getItem("notified_" + eventKey)) {
-          notify("Active Event", event.name);
-          localStorage.setItem("notified_" + eventKey, "yes");
-          playAlertSound(eventKey);
-        }
-      }
+      
     });
 
     // ✅ CRITICAL FIX: Attach ALL event listeners AFTER all cards are created
@@ -696,6 +688,7 @@ function getTotalUniqueScheduledMinutes(tt) {
 
   return total;
 }
+
 
 
 
