@@ -442,7 +442,7 @@ function autoMiss() {
   });
 
   saveLog(log);
-}
+
 
   
   // Penalize ignored hydration slots at end of day
@@ -809,6 +809,7 @@ function updateHomeStreak() {
 
   streakElement.innerHTML = `🔥 ${streak} Day Streak`;
 }
+
 
 
 
