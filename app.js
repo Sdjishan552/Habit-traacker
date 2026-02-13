@@ -53,7 +53,33 @@ function notify(title, body) {
 
 
 /* ========= SOUND ALERT ========= */
+/* ========= SOUND ALERT ========= */
+
 let soundPlayedForSlot = null;
+
+// Create reusable base sound
+const baseBeep = new Audio("data:audio/wav;base64,UklGRjIAAABXQVZFZm10IBIAAAABAAEAQB8AAEAfAAABAAgAAABmYWN0BAAAAAAAAABkYXRhAAAAAA==");
+baseBeep.preload = "auto";
+
+function playAlertSound(slotKey) {
+  if (soundPlayedForSlot === slotKey) return;
+
+  let count = 0;
+
+  function playBeep() {
+    const beep = baseBeep.cloneNode(); // clone for reliable replay
+    beep.play().catch(() => {});
+    count++;
+
+    if (count < 3) {
+      setTimeout(playBeep, 1500); // slightly longer gap
+    } else {
+      soundPlayedForSlot = slotKey;
+    }
+  }
+
+  playBeep();
+}
 
 function playAlertSound(slotKey) {
   if (soundPlayedForSlot === slotKey) return;
@@ -668,4 +694,5 @@ function getTotalUniqueScheduledMinutes(tt) {
 
   return total;
 }
+
 
