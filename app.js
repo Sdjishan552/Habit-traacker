@@ -57,25 +57,6 @@ let soundPlayedForSlot = null;
 const baseBeep = new Audio("data:audio/wav;base64,UklGRjIAAABXQVZFZm10IBIAAAABAAEAQB8AAEAfAAABAAgAAABmYWN0BAAAAAAAAABkYXRhAAAAAA==");
 baseBeep.preload = "auto";
 
-function playAlertSound(slotKey) {
-  if (soundPlayedForSlot === slotKey) return;
-
-  let count = 0;
-
-  function playBeep() {
-    const beep = baseBeep.cloneNode(); // clone for reliable replay
-    beep.play().catch(() => {});
-    count++;
-
-    if (count < 3) {
-      setTimeout(playBeep, 1500); // slightly longer gap
-    } else {
-      soundPlayedForSlot = slotKey;
-    }
-  }
-
-  playBeep();
-}
 
 function playAlertSound(slotKey) {
   if (soundPlayedForSlot === slotKey) return;
@@ -191,19 +172,55 @@ function getCurrentMainEvent() {
 
 
 /* ========= HYDRATION (ONLY AFTER START) ========= */
+// ================= FOCUS MODE SYSTEM =================
 
+let wakeLock = null;
+let focusTimer = null;
+
+async function enableWakeLock() {
+  try {
+    wakeLock = await navigator.wakeLock.request("screen");
+    console.log("🔒 Screen Wake Lock enabled");
+
+    // 🔁 Re-request wake lock if user comes back to app
+    
+
+  } catch (err) {
+    console.log("Wake Lock failed:", err);
+  }
+}
+
+
+function disableWakeLock() {
+  if (wakeLock) {
+    wakeLock.release();
+    wakeLock = null;
+    console.log("🔓 Wake Lock released");
+  }
+}
+
+document.addEventListener("visibilitychange", async () => {
+  if (wakeLock !== null && document.visibilityState === "visible") {
+    try {
+      wakeLock = await navigator.wakeLock.request("screen");
+    } catch (err) {
+      console.log("WakeLock re-request failed");
+    }
+  }
+});
 
 // Helper function – put this OUTSIDE of render(), for example right after render() ends
 function handleStartClick() {
-  console.log("▶️ [APK DEBUG] Start button CLICKED!");
   const name     = this.dataset.name;
   const start    = this.dataset.start;
+  const end      = this.dataset.end;
   const phase    = Number(this.dataset.phase) || 0;
   const severity = Number(this.dataset.severity) || 1;
-  console.log("▶️ [APK DEBUG] Event:", name, "| Phase:", phase);
-  
+
   startMainEvent(name, start, phase, severity);
+  startFocusTimer(end);
 }
+
 
 function handleWaterClick() {
   console.log("💧 [APK DEBUG] Water button CLICKED!");
@@ -297,13 +314,15 @@ function render() {
         <p>Severity: ${event.severity || 3}</p>
         ${entryStatus ? `<p>${entryStatus}</p>` : ''}
         ${!entry ? `
-          <button class="start-btn" 
-                  data-name="${event.name}" 
-                  data-start="${event.start}" 
-                  data-phase="${event.phase || 1}" 
-                  data-severity="${event.severity || 3}">
-            ▶ Start Event
-          </button>
+          <button class="start-btn"
+        data-name="${event.name}"
+        data-start="${event.start}"
+        data-end="${event.end}"
+        data-phase="${event.phase || 1}"
+        data-severity="${event.severity || 3}">
+  ▶ Start Focus Mode
+</button>
+
         ` : entry.score === null ? `
           <p class="status">In Progress – Finish before ${minutesToTime(toMinutes(event.end))}</p>
         ` : ''}
@@ -512,9 +531,21 @@ document.addEventListener("DOMContentLoaded", () => {
   window.addEventListener("storage", (e) => {
     if (e.key === "timetable" || e.key === "timetableUpdated") {
       updateLiveUI();
+     
+
     }
   });
+ // 🔄 Resume focus mode if active
+const savedFocus = localStorage.getItem("activeFocusEnd");
+if (savedFocus) {
+  const endDate = new Date(savedFocus);
 
+  if (endDate > new Date()) {
+    startFocusTimerFromResume(endDate);
+  } else {
+    localStorage.removeItem("activeFocusEnd");
+  }
+}
 });
 
 /* ========= INIT ========= */
@@ -810,7 +841,150 @@ function updateHomeStreak() {
   streakElement.innerHTML = `🔥 ${streak} Day Streak`;
 }
 
+function startFocusTimer(endTime) {
 
+  if (document.getElementById("focusOverlay")) return;
+
+  enableWakeLock();
+
+
+const [h, m] = endTime.split(":").map(Number);
+const endDate = new Date();
+endDate.setHours(h, m, 0, 0);
+// 💾 Save active focus session
+localStorage.setItem("activeFocusEnd", endDate.toISOString());
+
+  const overlay = document.createElement("div");
+  overlay.id = "focusOverlay";
+  overlay.style = `
+    position:fixed;
+    top:0;
+    left:0;
+    width:100%;
+    height:100%;
+    background:black;
+    color:white;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    font-size:2rem;
+    z-index:9999;
+  `;
+
+  overlay.innerHTML = `
+  <h1>FOCUS MODE</h1>
+  <div id="focusTimerDisplay"></div>
+  <button id="exitFocusBtn" style="
+    margin-top:20px;
+    padding:10px 20px;
+    font-size:1rem;
+  ">
+    ❌ Exit
+  </button>
+`;
+
+
+
+  document.body.appendChild(overlay);
+  overlay.querySelector("#exitFocusBtn")
+  .addEventListener("click", exitFocusMode);
+
+  focusTimer = setInterval(() => {
+  const now = new Date();
+  const remainingMs = endDate - now;
+
+  if (remainingMs <= 0) {
+    clearInterval(focusTimer);
+    localStorage.removeItem("activeFocusEnd");
+    overlay.remove();
+    disableWakeLock();
+    notify("🎉 Focus Complete", "Session Finished");
+    playAlertSound("focus_done");
+    return;
+  }
+
+  const mins = Math.floor(remainingMs / 60000);
+  const secs = Math.floor((remainingMs % 60000) / 1000);
+
+  document.getElementById("focusTimerDisplay").innerText =
+    `⏳ ${mins}m ${secs}s remaining`;
+}, 1000);
+
+}
+
+function startFocusTimerFromResume(endDate) {
+
+  if (document.getElementById("focusOverlay")) return;
+
+  enableWakeLock();
+
+  const overlay = document.createElement("div");
+  overlay.id = "focusOverlay";
+  overlay.style = `
+    position:fixed;
+    top:0;
+    left:0;
+    width:100%;
+    height:100%;
+    background:black;
+    color:white;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    font-size:2rem;
+    z-index:9999;
+  `;
+
+  overlay.innerHTML = `
+    <h1>FOCUS MODE (Resumed)</h1>
+    <div id="focusTimerDisplay"></div>
+    <button id="exitFocusBtn" style="
+      margin-top:20px;
+      padding:10px 20px;
+      font-size:1rem;
+    ">
+      ❌ Exit
+    </button>
+  `;
+
+  document.body.appendChild(overlay);
+
+  overlay.querySelector("#exitFocusBtn")
+    .addEventListener("click", exitFocusMode);
+
+  focusTimer = setInterval(() => {
+    const now = new Date();
+    const remainingMs = endDate - now;
+
+    if (remainingMs <= 0) {
+      clearInterval(focusTimer);
+      localStorage.removeItem("activeFocusEnd");
+      overlay.remove();
+      disableWakeLock();
+      notify("🎉 Focus Complete", "Session Finished");
+      playAlertSound("focus_done");
+      return;
+    }
+
+    const mins = Math.floor(remainingMs / 60000);
+    const secs = Math.floor((remainingMs % 60000) / 1000);
+
+    document.getElementById("focusTimerDisplay").innerText =
+      `⏳ ${mins}m ${secs}s remaining`;
+  }, 1000);
+}
+
+
+function exitFocusMode() {
+  clearInterval(focusTimer);
+  focusTimer = null;
+  disableWakeLock();
+  localStorage.removeItem("activeFocusEnd"); // 🧹 clear saved focus
+  const overlay = document.getElementById("focusOverlay");
+  if (overlay) overlay.remove();
+}
 
 
 
