@@ -658,7 +658,9 @@ function markWater(slot, startMinute) {
 function updateLiveUI() {
     updateLiveClock();     // refresh clock
     autoMiss();            // check for missed/ended events
-    render();              // update screen
+    render();
+    updateHomeStreak();   // ← ADD THIS LINE
+// update screen
 }
 
 
@@ -774,6 +776,7 @@ function updateHomeStreak() {
 
   streakElement.innerHTML = `🔥 ${streak} Day Streak`;
 }
+
 
 
 
