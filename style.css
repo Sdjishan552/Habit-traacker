@@ -427,21 +427,44 @@ canvas {
 color: #e10600;
 }
 
-.countdown-section {
-  margin-top: 6px;
-  text-align: center;
+/* ===== ADMIN COUNTDOWN STYLING ===== */
+
+.countdown-input {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(255,255,255,0.6);
+  padding: 6px 10px;
+  border-radius: 8px;
+  backdrop-filter: blur(4px);
 }
 
-.countdown-box {
-  font-weight: 600;
-  color: #ff5722;
-  margin-bottom: 5px;
+.countdown-input input[type="date"] {
+  padding: 6px 8px;
+  border-radius: 6px;
+  border: 1px solid rgba(0,0,0,0.15);
+  font-size: 14px;
+  background: white;
+  outline: none;
 }
 
-.countdown-input input {
-  padding: 4px;
+.countdown-input input[type="date"]:focus {
+  border-color: #2196f3;
 }
 
 .countdown-input button {
-  padding: 4px 8px;
+  padding: 6px 12px;
+  border-radius: 6px;
+  border: none;
+  background: #2196f3;
+  color: white;
+  font-weight: 500;
+  cursor: pointer;
+  transition: 0.2s ease;
 }
+
+.countdown-input button:hover {
+  background: #1976d2;
+  transform: translateY(-1px);
+}
+
