@@ -932,7 +932,7 @@ font-size: clamp(3rem, 12vw, 5rem);
     ${mins}m ${secs}s
   </div>
   `;
-
+}, 1000);   
 
 }
 
@@ -1019,7 +1019,7 @@ font-size: clamp(3rem, 12vw, 5rem);
     ${mins}m ${secs}s
   </div>
   `;
-
+}, 1000);   
 }
 
 
@@ -1031,6 +1031,7 @@ function exitFocusMode() {
   const overlay = document.getElementById("focusOverlay");
   if (overlay) overlay.remove();
 }
+
 
 
 
