@@ -429,42 +429,27 @@ color: #e10600;
 
 /* ===== ADMIN COUNTDOWN STYLING ===== */
 
-.countdown-input {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  background: rgba(255,255,255,0.6);
-  padding: 6px 10px;
-  border-radius: 8px;
-  backdrop-filter: blur(4px);
+/* ===== HOME COUNTDOWN – JARVIS RED THEME ===== */
+
+.countdown-section {
+  margin-top: 10px;
+  text-align: center;
 }
 
-.countdown-input input[type="date"] {
-  padding: 6px 8px;
-  border-radius: 6px;
-  border: 1px solid rgba(0,0,0,0.15);
-  font-size: 14px;
-  background: white;
-  outline: none;
-}
-
-.countdown-input input[type="date"]:focus {
-  border-color: #2196f3;
-}
-
-.countdown-input button {
+.countdown-box {
+  font-size: 1.1rem;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  color: #e10600; /* SAME AS JARVIS VERSION */
+  
   padding: 6px 12px;
-  border-radius: 6px;
-  border: none;
-  background: #2196f3;
-  color: white;
-  font-weight: 500;
-  cursor: pointer;
-  transition: 0.2s ease;
+  border-radius: 10px;
+
+  background: rgba(225, 6, 0, 0.08);
+  border: 1px solid rgba(225, 6, 0, 0.25);
+
+  display: inline-block;
 }
 
-.countdown-input button:hover {
-  background: #1976d2;
-  transform: translateY(-1px);
-}
+
 
