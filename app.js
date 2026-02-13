@@ -733,6 +733,48 @@ function updateExamCountdown() {
 
 
 
+/* ================= HOME DISCIPLINE STREAK ================= */
+
+function calculateDisciplinePercent(log) {
+  let max = 0, got = 0;
+
+  log.forEach(e => {
+    if (e.phase === "micro" || e.phase === "hydration") return;
+    const score = e.score !== null ? e.score : (e.started ? e.severity * 10 : 0);
+    max += e.severity * 10;
+    got += score;
+  });
+
+  return max ? Math.round((got / max) * 100) : 0;
+}
+
+function updateHomeStreak() {
+  const streakElement = document.getElementById("streakDisplay");
+  if (!streakElement) return;
+
+  let streak = 0;
+  const today = new Date();
+
+  for (let i = 0; ; i++) {
+    const d = new Date();
+    d.setDate(today.getDate() - i);
+    const key = d.toISOString().split("T")[0];
+
+    const log = JSON.parse(localStorage.getItem(key));
+    if (!log) break;
+
+    const percent = calculateDisciplinePercent(log);
+
+    if (percent >= 60) {
+      streak++;
+    } else {
+      break;
+    }
+  }
+
+  streakElement.innerHTML = `🔥 ${streak} Day Streak`;
+}
+
 
 
 
