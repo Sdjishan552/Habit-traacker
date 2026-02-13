@@ -273,7 +273,6 @@ function render() {
 );
 
             localStorage.setItem("notified_" + slotKey, "yes");
-            playAlertSound(slotKey);
         }
     }
 
@@ -695,6 +694,7 @@ function getTotalUniqueScheduledMinutes(tt) {
 
   return total;
 }
+
 
 
 
