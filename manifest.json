@@ -3,9 +3,9 @@
   "short_name": "Discipline",
   "description": "Track daily discipline, events, hydration and build better habits",
   "start_url": "./index.html",
-  "display": "standalone",
-  "background_color": "#ffffff",
-  "theme_color": "#2196f3",
+  "display": "fullscreen",
+"background_color": "#000000",
+"theme_color": "#000000",
   "orientation": "portrait-primary",
   "icons": [
     {
