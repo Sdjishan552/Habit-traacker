@@ -53,7 +53,7 @@ function renderNotifications() {
   const upcomingCard = document.createElement("div");
   upcomingCard.className = "card";
   upcomingCard.innerHTML = `
-    <h2>📅 Upcoming</h2>
+    <h2>📅 Upcoming Events</h2>
     ${upcoming.length ? upcoming.map(e =>
       `<p>
         <strong>${e.name}</strong><br>
@@ -166,4 +166,5 @@ renderNotifications();
 
 </body>
 </html>
+
 
