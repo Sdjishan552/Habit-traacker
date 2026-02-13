@@ -182,9 +182,9 @@ function render() {
 
       <label>Severity</label>
       <select class="severity">
-        <option value="3" ${event.severity===3?'selected':''}>3 – Critical</option>
-        <option value="2" ${event.severity===2?'selected':''}>2 – Important</option>
-        <option value="1" ${event.severity===1?'selected':''}>1 – Light</option>
+        <option value="3" ${event.severity===3?'selected':''}>Critical</option>
+        <option value="2" ${event.severity===2?'selected':''}>Important</option>
+        <option value="1" ${event.severity===1?'selected':''}>Light</option>
       </select>
 
       <div style="margin-top:15px; display:flex; gap:10px;">
@@ -284,6 +284,7 @@ askForPin();
 </script>
 </body>
 </html>
+
 
 
 
