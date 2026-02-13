@@ -874,7 +874,7 @@ localStorage.setItem("activeFocusEnd", endDate.toISOString());
 
   overlay.innerHTML = `
   <h1 style="
-    font-size: 4rem;
+  font-size: clamp(2.5rem, 8vw, 4rem);
     font-weight: 900;
     letter-spacing: 3px;
     margin-bottom: 40px;
@@ -883,9 +883,11 @@ localStorage.setItem("activeFocusEnd", endDate.toISOString());
   </h1>
 
   <div id="focusTimerDisplay" style="
-    font-size: 5rem;
+font-size: clamp(3rem, 12vw, 5rem);
     font-weight: 900;
     margin-bottom: 40px;
+    max-width: 90vw;
+
   "></div>
 
   <button id="exitFocusBtn" style="
@@ -962,9 +964,11 @@ function startFocusTimerFromResume(endDate) {
   </h1>
 
   <div id="focusTimerDisplay" style="
-    font-size: 5rem;
+font-size: clamp(3rem, 12vw, 5rem);
     font-weight: 900;
     margin-bottom: 40px;
+    max-width: 90vw;
+
   "></div>
 
   <button id="exitFocusBtn" style="
