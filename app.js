@@ -366,6 +366,8 @@ function startMainEvent(name, start, phase, severity) {
   playAlertSound(slotKey);
 
   log.push({
+
+
     name,
     phase,
     severity,
@@ -695,15 +697,6 @@ function getTotalUniqueScheduledMinutes(tt) {
 
 let countdownTarget = null;
 
-function setCountdownDate() {
-  const input = document.getElementById("countdownDate");
-  if (!input.value) return;
-
-  countdownTarget = new Date(input.value + "T00:00:00");
-  localStorage.setItem("countdownTarget", countdownTarget.toISOString());
-
-  updateExamCountdown();
-}
 
 function loadCountdownDate() {
   const saved = localStorage.getItem("countdownTarget");
@@ -737,6 +730,7 @@ function updateExamCountdown() {
   countdownElement.innerHTML =
     `🎯 ${days}d ${hours}h ${minutes}m ${seconds}s`;
 }
+
 
 
 
