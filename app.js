@@ -857,20 +857,20 @@ localStorage.setItem("activeFocusEnd", endDate.toISOString());
   const overlay = document.createElement("div");
   overlay.id = "focusOverlay";
   overlay.style = `
-    position:fixed;
-    top:0;
-    left:0;
-    width:100%;
-    height:100%;
-    background:black;
-    color:white;
-    display:flex;
-    flex-direction:column;
-    align-items:center;
-    justify-content:center;
-    font-size:2rem;
-    z-index:9999;
-  `;
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  background: black;
+  color: white;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  z-index: 999999;
+`;
+
 
   overlay.innerHTML = `
   <h1>FOCUS MODE</h1>
@@ -922,20 +922,20 @@ function startFocusTimerFromResume(endDate) {
   const overlay = document.createElement("div");
   overlay.id = "focusOverlay";
   overlay.style = `
-    position:fixed;
-    top:0;
-    left:0;
-    width:100%;
-    height:100%;
-    background:black;
-    color:white;
-    display:flex;
-    flex-direction:column;
-    align-items:center;
-    justify-content:center;
-    font-size:2rem;
-    z-index:9999;
-  `;
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  background: black;
+  color: white;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  z-index: 999999;
+`;
+
 
   overlay.innerHTML = `
     <h1>FOCUS MODE (Resumed)</h1>
