@@ -239,6 +239,18 @@ function saveEvent(index) {
 /* ================= ADD / DELETE ================= */
 
 function addEvent() {
+
+  // 🚫 Check if there is already an unsaved empty event
+  const hasEmpty = timetable.some(e =>
+    !e.name || !e.start || !e.end
+  );
+
+  if (hasEmpty) {
+    alert("⚠️ Please save or delete the current empty event first.");
+    return;
+  }
+
+  // ✅ Add new blank event
   timetable.unshift({
     name: "",
     start: "",
@@ -246,6 +258,7 @@ function addEvent() {
     phase: 1,
     severity: 3
   });
+
   render();
 }
 
@@ -284,7 +297,6 @@ askForPin();
 </script>
 </body>
 </html>
-
 
 
 
