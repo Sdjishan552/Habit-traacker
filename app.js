@@ -23,33 +23,29 @@ function requestNotificationPermission() {
   }
 }
 
-function notify(title, body) {
-  if (!("Notification" in window)) {
-    console.log("Notifications not supported.");
-    return;
-  }
+function notify(title, body, tagKey = "default-tag") {
+  if (!("Notification" in window)) return;
+  if (Notification.permission !== "granted") return;
 
-  if (Notification.permission !== "granted") {
-    console.log("Notification permission not granted.");
-    return;
-  }
+  const options = {
+    body: body,
+    icon: "assets/icon-192.png",
+    badge: "assets/icon-192.png",
+    vibrate: [600, 300, 600, 300, 600], // 3 strong vibration pulses
+    requireInteraction: true,          // stays until dismissed
+    tag: tagKey,
+    renotify: true
+  };
 
-  // If running as installed PWA → use service worker
   if (navigator.serviceWorker && navigator.serviceWorker.controller) {
     navigator.serviceWorker.ready.then(registration => {
-      registration.showNotification(title, {
-        body: body,
-        icon: "assets/icon-192.png",
-        badge: "assets/icon-192.png"
-      });
-      console.log("Notification shown via Service Worker");
+      registration.showNotification(title, options);
     });
   } else {
-    // Fallback (browser tab)
-    new Notification(title, { body });
-    console.log("Notification shown via window");
+    new Notification(title, options);
   }
 }
+
 
 
 /* ========= SOUND ALERT ========= */
@@ -694,5 +690,6 @@ function getTotalUniqueScheduledMinutes(tt) {
 
   return total;
 }
+
 
 
