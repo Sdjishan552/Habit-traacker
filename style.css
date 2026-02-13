@@ -426,3 +426,22 @@ canvas {
   margin-top: 2px;
 color: #e10600;
 }
+
+.countdown-section {
+  margin-top: 6px;
+  text-align: center;
+}
+
+.countdown-box {
+  font-weight: 600;
+  color: #ff5722;
+  margin-bottom: 5px;
+}
+
+.countdown-input input {
+  padding: 4px;
+}
+
+.countdown-input button {
+  padding: 4px 8px;
+}
