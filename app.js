@@ -24,13 +24,33 @@ function requestNotificationPermission() {
 }
 
 function notify(title, body) {
-  if ("Notification" in window && Notification.permission === "granted") {
-    console.log("Showing notification: " + title);
-    new Notification(title, { body });
+  if (!("Notification" in window)) {
+    console.log("Notifications not supported.");
+    return;
+  }
+
+  if (Notification.permission !== "granted") {
+    console.log("Notification permission not granted.");
+    return;
+  }
+
+  // If running as installed PWA → use service worker
+  if (navigator.serviceWorker && navigator.serviceWorker.controller) {
+    navigator.serviceWorker.ready.then(registration => {
+      registration.showNotification(title, {
+        body: body,
+        icon: "assets/icon-192.png",
+        badge: "assets/icon-192.png"
+      });
+      console.log("Notification shown via Service Worker");
+    });
   } else {
-    console.log("Cannot show notification: permission not granted.");
+    // Fallback (browser tab)
+    new Notification(title, { body });
+    console.log("Notification shown via window");
   }
 }
+
 
 /* ========= SOUND ALERT ========= */
 let soundPlayedForSlot = null;
@@ -648,3 +668,4 @@ function getTotalUniqueScheduledMinutes(tt) {
 
   return total;
 }
+
