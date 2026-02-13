@@ -6,6 +6,56 @@
   <title>Event Performance Details</title>
   <link rel="stylesheet" href="style.css">
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+
+/* Match main app background */
+body {
+  background: linear-gradient(135deg, #f7f3eb, #eef6f8);
+}
+
+/* Header same feel as stats page */
+header {
+  padding: 18px 12px;
+  text-align: center;
+}
+
+/* Range buttons – match app buttons */
+.range-buttons {
+  margin-top: 12px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: center;
+}
+
+.range-buttons button {
+  background: #e9f1f5;
+  color: #1f4f63;
+  border-radius: 14px;
+  padding: 8px 14px;
+  font-weight: 600;
+}
+
+.range-buttons button:hover {
+  background: #d7e8ef;
+}
+
+/* Chart card spacing */
+#chartsContainer {
+  padding: 20px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+canvas {
+  max-height: 320px !important;
+}
+
+</style>
+
 </head>
 <body>
 
@@ -278,3 +328,4 @@ charts.push(new Chart(hydCanvas, {
 </body>
 
 </html>
+
