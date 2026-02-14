@@ -1032,6 +1032,54 @@ function exitFocusMode() {
   if (overlay) overlay.remove();
 }
 
+const sentences = [
+  "Got a headache?",
+  "Get a damn cup of ☕",
+  "You need consistency.",
+  "Confidence comes later.",
+  "What you are doing now",
+  "May feel pointless today,",
+  "but consistency will prove it wasn’t."
+];
+
+
+
+let sentenceIndex = 0;
+let charIndex = 0;
+let isDeleting = false;
+
+function typeEffect() {
+  const textElement = document.getElementById("typeText");
+  if (!textElement) return;
+
+  const currentSentence = sentences[sentenceIndex];
+
+  if (!isDeleting) {
+    // Typing
+    textElement.innerText = currentSentence.substring(0, charIndex + 1);
+    charIndex++;
+
+    if (charIndex === currentSentence.length) {
+      setTimeout(() => isDeleting = true, 800); // pause before deleting
+    }
+  } else {
+    // Deleting
+    textElement.innerText = currentSentence.substring(0, charIndex - 1);
+    charIndex--;
+
+    if (charIndex === 0) {
+      isDeleting = false;
+      sentenceIndex = (sentenceIndex + 1) % sentences.length;
+    }
+  }
+
+  setTimeout(typeEffect, isDeleting ? 25 : 45); // slow typing
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+  typeEffect();
+});
+
 
 
 
