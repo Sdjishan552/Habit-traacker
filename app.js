@@ -1036,11 +1036,13 @@ const sentences = [
   "Got a headache?",
   "Get a damn cup of ☕",
   "You need consistency.",
-  "Confidence comes later.",
+  "Confidence comes later",
   "What you are doing now",
-  "May feel pointless today,",
-  "but consistency will prove it wasn’t."
+  "May feel pointless today",
+  "but consistency will prove ",
+  "It wasn’t..."
 ];
+
 
 
 
@@ -1079,6 +1081,7 @@ function typeEffect() {
 document.addEventListener("DOMContentLoaded", () => {
   typeEffect();
 });
+
 
 
 
