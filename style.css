@@ -38,7 +38,7 @@ header div {
 
 main {
   flex: 1;
-  padding: 18px 14px 60px;
+  padding: 18px 14px 10px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -639,6 +639,7 @@ color: #e10600;
     0 4px 12px rgba(0, 0, 0, 0.25),
     0 0 20px rgba(0, 0, 0, 0.15);
 }
+
 
 
 
