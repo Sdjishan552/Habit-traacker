@@ -1041,7 +1041,7 @@ const sentences = [
   "May feel pointless today",
   "but consistency will prove ",
   "It wasn’t...",
-  "☎️ Call when you can"
+  "☎️ Call when you can..."
 ];
 
 
