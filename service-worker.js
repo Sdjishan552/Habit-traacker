@@ -1,5 +1,5 @@
 // service-worker.js - v3.0 - WORKING VERSION
-const CACHE_NAME = 'discipline-tracker-v3.8';
+const CACHE_NAME = 'discipline-tracker-v3.9';
 const urlsToCache = [
   './index.html',
   './style.css',
@@ -76,6 +76,7 @@ self.addEventListener('fetch', event => {
       })
   );
 });
+
 
 
 
