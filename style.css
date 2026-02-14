@@ -587,13 +587,15 @@ color: #e10600;
 
   display: inline-block;
 }
-
-@keyframes blink {
-  0% { opacity: 1; }
-  50% { opacity: 0; }
-  100% { opacity: 1; }
+#cursor {
+  margin-left: 4px;
+  font-weight: 900;
+  animation: blink 1s infinite;
 }
-
+@keyframes blink {
+  0%,100% { opacity: 1; }
+  50% { opacity: 0; }
+}
 
 .home-header h1 {
   font-family: 'Montserrat', sans-serif;
@@ -613,6 +615,32 @@ color: #e10600;
     font-size: 1.4rem;
   }
 }
+/* --------------------------------------- */
+.hero-container {
+  width: 90%;
+  max-width: 700px;
+
+  margin: 5px auto 0 auto;   /* 🔥 almost no top space */
+
+  min-height: 10px;          /* just enough to prevent jump */
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+
+  font-family: 'Montserrat', sans-serif;
+  font-weight: 900;
+  font-size: clamp(1.3rem, 4vw, 2.2rem);
+
+  color: #111;
+  text-shadow: 
+    0 4px 12px rgba(0, 0, 0, 0.25),
+    0 0 20px rgba(0, 0, 0, 0.15);
+}
+
+
+
 
 
 
