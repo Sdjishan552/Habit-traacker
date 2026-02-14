@@ -592,6 +592,13 @@ color: #e10600;
   font-weight: 900;
   animation: blink 1s infinite;
 }
+
+@keyframes blink {
+  0%,100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+
+
 @keyframes blink {
   0%,100% { opacity: 1; }
   50% { opacity: 0; }
@@ -639,6 +646,7 @@ color: #e10600;
     0 4px 12px rgba(0, 0, 0, 0.25),
     0 0 20px rgba(0, 0, 0, 0.15);
 }
+
 
 
 
