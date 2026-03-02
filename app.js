@@ -1040,8 +1040,7 @@ const sentences = [
   "What you are doing now",
   "May feel pointless today",
   "but consistency will prove ",
-  "It wasn’t...",
-  "☎️ Call when you can..."
+  "It wasn’t..."
 ];
 
 
@@ -1082,6 +1081,7 @@ function typeEffect() {
 document.addEventListener("DOMContentLoaded", () => {
   typeEffect();
 });
+
 
 
 
