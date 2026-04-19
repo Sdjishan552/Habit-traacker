@@ -11,7 +11,7 @@
       position: sticky;
       top: 0;
       z-index: 10;
-      background: linear-gradient(135deg, #f7f3eb, #eef6f8);
+      background: rgba(10,10,10,0.92); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
       padding: 10px;
       display: flex;
       justify-content: center;
@@ -23,24 +23,18 @@
 
     /* Success highlight */
     .card-success {
-      background: linear-gradient(
-        135deg,
-        rgba(46,204,113,0.15),
-        rgba(46,204,113,0.08)
-      ) !important;
-      border: 1px solid rgba(46,204,113,0.4);
+      background: rgba(0,230,118,0.07) !important;
+      border-left-color: #00e676 !important;
       transition: all 0.6s ease;
     }
 
-    /* Blue countdown button */
     .admin-bar .countdown-input button {
-      background: #2563eb;
+      background: linear-gradient(135deg, #4f9ecb, #2c7aa1);
       color: white;
       font-weight: 600;
     }
-
     .admin-bar .countdown-input button:hover {
-      background: #1e4ed8;
+      background: linear-gradient(135deg, #3e8bb6, #236685);
     }
   </style>
 </head>
