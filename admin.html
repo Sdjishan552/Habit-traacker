@@ -66,7 +66,23 @@
     <button onclick="saveAdminCountdown()">Set</button>
   </div>
 
-  
+  <div class="countdown-input" style="border-color:rgba(46,204,113,0.4); background:rgba(46,204,113,0.08);">
+    <span style="font-size:13px; font-weight:600; color:#1a7a4a; white-space:nowrap;">💧 Water every</span>
+    <input type="number" id="waterIntervalInput" min="15" max="240" step="5" value="60"
+           style="width:64px; border-color:rgba(46,204,113,0.4);">
+    <span style="font-size:13px; color:#1a7a4a;">min</span>
+    <button onclick="saveWaterInterval()"
+            style="background:linear-gradient(135deg,#27ae60,#1e8449); color:white;">Set</button>
+  </div>
+
+  <button onclick="triggerImport()"
+    style="background:linear-gradient(135deg,#7c3aed,#5b21b6); color:white; font-weight:700;">
+    📥 Import Timetable
+  </button>
+
+  <!-- Hidden file input — accepts JSON and Excel -->
+  <input type="file" id="importFileInput" accept=".json,.xlsx,.xls"
+         style="display:none;" onchange="handleImportFile(event)">
 
 </div>
 
@@ -144,7 +160,27 @@ function timeToMinutes(t) {
 function loadAdmin() {
   adminBar.style.display = "flex";
   timetable = loadTimetable();
+
+  // Pre-fill water interval from localStorage
+  const savedInterval = localStorage.getItem("waterInterval");
+  const el = document.getElementById("waterIntervalInput");
+  if (el) el.value = savedInterval ? savedInterval : 60;
+
   render();
+}
+
+/* ================= WATER INTERVAL ================= */
+
+function saveWaterInterval() {
+  const el = document.getElementById("waterIntervalInput");
+  if (!el) return;
+  const val = parseInt(el.value, 10);
+  if (isNaN(val) || val < 15) {
+    alert("Minimum interval is 15 minutes.");
+    return;
+  }
+  localStorage.setItem("waterInterval", val);
+  alert("✅ Water reminder set to every " + val + " minutes.");
 }
 
 /* ================= RENDER ================= */
@@ -174,17 +210,15 @@ function render() {
       <label>Phase</label>
       <select class="phase">
         ${[1,2,3,4].map(p =>
-          `<option value="${p}" ${p===event.phase?'selected':''}>
-            Phase ${p}
-          </option>`
+          `<option value="${p}" ${p===event.phase?'selected':''}>Phase ${p}</option>`
         ).join("")}
       </select>
 
-      <label>Severity</label>
-      <select class="severity">
-        <option value="3" ${event.severity===3?'selected':''}>Critical</option>
-        <option value="2" ${event.severity===2?'selected':''}>Important</option>
-        <option value="1" ${event.severity===1?'selected':''}>Light</option>
+      <label>Category</label>
+      <select class="tag">
+        ${["Study","Deep Work","Exercise","Break","Admin","Personal","General"].map(t =>
+          `<option value="${t}" ${(event.tag||"General")===t?'selected':''}>${t}</option>`
+        ).join("")}
       </select>
 
       <div style="margin-top:15px; display:flex; gap:10px;">
@@ -202,11 +236,11 @@ function saveEvent(index) {
   const rows = document.querySelectorAll(".event-row");
   const row = rows[index];
 
-  const name = row.querySelector(".name").value.trim();
+  const name  = row.querySelector(".name").value.trim();
   const start = row.querySelector(".start").value;
-  const end = row.querySelector(".end").value;
+  const end   = row.querySelector(".end").value;
   const phase = Number(row.querySelector(".phase").value);
-  const severity = Number(row.querySelector(".severity").value);
+  const tag   = row.querySelector(".tag").value || "General";
 
   if (!name || !start || !end) {
     alert("Fill all fields.");
@@ -218,7 +252,7 @@ function saveEvent(index) {
     return;
   }
 
-  timetable[index] = { name, start, end, phase, severity };
+  timetable[index] = { name, start, end, phase, tag };
   localStorage.setItem("timetable", JSON.stringify(timetable));
   localStorage.setItem("timetableUpdated", Date.now());
 
@@ -256,7 +290,7 @@ function addEvent() {
     start: "",
     end: "",
     phase: 1,
-    severity: 3
+    tag: "General"
   });
 
   render();
@@ -292,12 +326,210 @@ function masterReset() {
   location.reload();
 }
 
+/* ================= IMPORT TIMETABLE ================= */
+
+function triggerImport() {
+  document.getElementById("importFileInput").click();
+}
+
+function handleImportFile(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+
+  const ext = file.name.split(".").pop().toLowerCase();
+
+  if (ext === "json") {
+    handleJSONImport(file);
+  } else if (ext === "xlsx" || ext === "xls") {
+    handleExcelImport(file);
+  } else {
+    alert("❌ Unsupported file. Please upload a .json or .xlsx file.");
+  }
+
+  // Reset input so same file can be re-uploaded if needed
+  event.target.value = "";
+}
+
+/* ── JSON Import ── */
+function handleJSONImport(file) {
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      const data = JSON.parse(e.target.result);
+      const parsed = parseImportedData(data);
+      if (parsed.length === 0) {
+        alert("❌ No valid events found in JSON file.\nCheck the format and try again.");
+        return;
+      }
+      confirmAndApplyImport(parsed);
+    } catch(err) {
+      alert("❌ Invalid JSON file.\nError: " + err.message);
+    }
+  };
+  reader.readAsText(file);
+}
+
+/* ── Excel Import ── */
+function handleExcelImport(file) {
+  // Dynamically load SheetJS (works offline after first load via SW cache)
+  if (typeof XLSX === "undefined") {
+    const script = document.createElement("script");
+    script.src = "https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js";
+    script.onload = () => processExcel(file);
+    script.onerror = () => alert("❌ Could not load Excel parser. Check internet connection.");
+    document.head.appendChild(script);
+  } else {
+    processExcel(file);
+  }
+}
+
+function processExcel(file) {
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      const wb    = XLSX.read(e.target.result, { type: "array" });
+      const sheet = wb.Sheets[wb.SheetNames[0]];
+      const rows  = XLSX.utils.sheet_to_json(sheet, { defval: "" });
+
+      const parsed = parseImportedData(rows);
+      if (parsed.length === 0) {
+        alert("❌ No valid events found in Excel file.\nCheck the column names and try again.");
+        return;
+      }
+      confirmAndApplyImport(parsed);
+    } catch(err) {
+      alert("❌ Could not read Excel file.\nError: " + err.message);
+    }
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+/* ── Parse & Validate rows (works for both JSON and Excel) ──
+   Accepted column names (case-insensitive, flexible):
+   name / event / event_name / title
+   start / start_time / from
+   end / end_time / to
+   phase (optional, default 1)
+   tag / category (optional, default General)
+*/
+function parseImportedData(rows) {
+  if (!Array.isArray(rows)) {
+    alert("❌ JSON must be an array of event objects.");
+    return [];
+  }
+
+  const validEvents = [];
+  const timeRegex   = /^([01]?[0-9]|2[0-3]):[0-5][0-9]$/;
+
+  rows.forEach((row, idx) => {
+    // ── Flexible key matching ──
+    const keys = Object.keys(row).reduce((acc, k) => {
+      acc[k.toLowerCase().trim()] = row[k];
+      return acc;
+    }, {});
+
+    const name  = String(
+      keys["name"] || keys["event"] || keys["event_name"] || keys["title"] || ""
+    ).trim();
+
+    let start = String(
+      keys["start"] || keys["start_time"] || keys["from"] || ""
+    ).trim();
+
+    let end = String(
+      keys["end"] || keys["end_time"] || keys["to"] || ""
+    ).trim();
+
+    const phase = parseInt(keys["phase"] || keys["phase_no"] || 1, 10) || 1;
+
+    const rawTag = String(
+      keys["tag"] || keys["category"] || keys["type"] || "General"
+    ).trim();
+
+    // Normalize tag to allowed values
+    const allowedTags = ["Study","Workout","General","Deep Work","Exercise","Break","Admin","Personal"];
+    const tag = allowedTags.find(t => t.toLowerCase() === rawTag.toLowerCase()) || "General";
+
+    // ── Normalize time: accept "8:30", "08:30", "8:30 AM", "08:30:00" ──
+    start = normalizeTime(start);
+    end   = normalizeTime(end);
+
+    if (!name) { console.warn(`Row ${idx+1}: missing name, skipped`); return; }
+    if (!start || !timeRegex.test(start)) { console.warn(`Row ${idx+1}: bad start time "${start}", skipped`); return; }
+    if (!end   || !timeRegex.test(end))   { console.warn(`Row ${idx+1}: bad end time "${end}", skipped`);   return; }
+
+    const startMin = toMin(start);
+    const endMin   = toMin(end);
+    if (startMin >= endMin) { console.warn(`Row ${idx+1}: start >= end, skipped`); return; }
+
+    validEvents.push({ name, start, end, phase, tag });
+  });
+
+  return validEvents;
+}
+
+function normalizeTime(raw) {
+  if (!raw) return "";
+  raw = String(raw).trim();
+
+  // Already HH:MM
+  if (/^([01]?[0-9]|2[0-3]):[0-5][0-9]$/.test(raw)) {
+    const [h, m] = raw.split(":").map(Number);
+    return h.toString().padStart(2,"0") + ":" + m.toString().padStart(2,"0");
+  }
+
+  // HH:MM:SS  → strip seconds
+  if (/^([01]?[0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9]$/.test(raw)) {
+    const parts = raw.split(":");
+    return parts[0].padStart(2,"0") + ":" + parts[1].padStart(2,"0");
+  }
+
+  // 12-hour format: "8:30 AM" / "08:30 PM"
+  const ampm = raw.match(/^(\d{1,2}):(\d{2})\s*(AM|PM)$/i);
+  if (ampm) {
+    let h = parseInt(ampm[1], 10);
+    const m = parseInt(ampm[2], 10);
+    const isPM = ampm[3].toUpperCase() === "PM";
+    if (isPM && h !== 12) h += 12;
+    if (!isPM && h === 12) h = 0;
+    return h.toString().padStart(2,"0") + ":" + m.toString().padStart(2,"0");
+  }
+
+  return ""; // unrecognized
+}
+
+function toMin(t) {
+  const [h, m] = t.split(":").map(Number);
+  return h * 60 + m;
+}
+
+/* ── Show preview and confirm before applying ── */
+function confirmAndApplyImport(events) {
+  const preview = events.slice(0, 5).map(e =>
+    `• ${e.name} | ${e.start}–${e.end} | Phase ${e.phase} | ${e.tag}`
+  ).join("\n");
+
+  const more = events.length > 5 ? `\n... and ${events.length - 5} more` : "";
+
+  const confirmed = confirm(
+    `✅ Found ${events.length} valid event(s):\n\n${preview}${more}\n\n` +
+    `This will REPLACE your current timetable.\nProceed?`
+  );
+
+  if (!confirmed) return;
+
+  // Apply
+  timetable = events;
+  localStorage.setItem("timetable", JSON.stringify(timetable));
+  localStorage.setItem("timetableUpdated", Date.now());
+  render();
+  alert(`✅ Timetable imported successfully! ${events.length} events loaded.`);
+}
+
+/* ================= END IMPORT ================= */
+
 askForPin();
 
 </script>
 </body>
 </html>
-
-
-
-
