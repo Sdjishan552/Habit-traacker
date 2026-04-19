@@ -42,7 +42,7 @@ header {
 
 /* Chart card spacing */
 #chartsContainer {
-  padding: 20px 14px;
+  padding: 20px 14px 130px;
   display: flex;
   flex-direction: column;
   gap: 24px;
@@ -56,6 +56,24 @@ canvas {
 
 </style>
 
+
+<style>
+footer {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 10px 12px 14px;
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  background: rgba(240, 236, 227, 0.85);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-top: 1px solid rgba(0,0,0,0.06);
+  z-index: 100;
+}
+</style>
 </head>
 <body>
 
@@ -118,11 +136,13 @@ canvas {
 
   function getLogs(daysBack) {
     const out = [];
+    const trackingStart = localStorage.getItem("trackingStartDate") || null;
     const today = new Date();
     for (let i = 0; i < daysBack; i++) {
       const d = new Date(today);
       d.setDate(today.getDate() - i);
       const key = todayKey(d);
+      if (trackingStart && key < trackingStart) continue;
       const log = JSON.parse(localStorage.getItem(key)) || [];
       out.push({ date: key, log });
     }
