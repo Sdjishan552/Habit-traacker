@@ -5,6 +5,24 @@
   <title>Notifications</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="stylesheet" href="style.css">
+
+<style>
+footer {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 10px 12px 14px;
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  background: rgba(240, 236, 227, 0.85);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-top: 1px solid rgba(0,0,0,0.06);
+  z-index: 100;
+}
+</style>
 </head>
 <body>
 
@@ -12,7 +30,7 @@
   <h1>Activity Overview</h1>
 </header>
 
-<main id="notifyContainer"></main>
+<main id="notifyContainer" style="padding-bottom: 130px;"></main>
 
 <footer>
   <button onclick="goHome()">⬅ Back</button>
@@ -166,5 +184,3 @@ renderNotifications();
 
 </body>
 </html>
-
-
