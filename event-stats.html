@@ -178,13 +178,13 @@ function groupByWeek(labels, values) {
 tt.forEach(event => {
   const name = event.name;
   const safeId = name.replace(/\s+/g, '_');
-  const maxScore = event.severity * 10;
+  const tag = event.tag || "General";
 
   let percents = data.map(day => {
-  const entry = day.log.find(e => e.name === name);
-  if (!entry || entry.score == null) return 0;
-  return Math.round((entry.score / maxScore) * 100);
-});
+    const entry = day.log.find(e => e.name === name);
+    if (!entry || entry.score == null) return 0;
+    return Math.round((entry.score / 10) * 100);
+  });
 
 let displayLabels = dLabels;
 let displayPercents = percents;
@@ -208,7 +208,8 @@ if (data.length > 7) {
   const card = document.createElement("div");
   card.className = "card";
   card.innerHTML = `
-    <h3>${name} (Phase ${event.phase}, Severity ${event.severity}) ${data.length > 7 ? '<small>(Weekly Averages)</small>' : ''}</h3>    <canvas id="evt_${safeId}"></canvas>
+    <h3>${name} <span style="font-size:0.75rem;background:#e8f4fd;color:#1565c0;padding:2px 8px;border-radius:8px;font-weight:600;">🏷 ${tag}</span> ${data.length > 7 ? '<small>(Weekly Averages)</small>' : ''}</h3>
+    <canvas id="evt_${safeId}"></canvas>
     <div style="margin-top:12px; font-size:14px; color:#ccc;">
       <p><strong>Average:</strong> ${avgPercent}%</p>
       <p><strong>Progress (start to end):</strong> ${progressText}</p>
@@ -328,4 +329,3 @@ charts.push(new Chart(hydCanvas, {
 </body>
 
 </html>
-
