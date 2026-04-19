@@ -1140,18 +1140,19 @@ function showNotePopup() {
 
   popup.innerHTML = `
     <div style="
-      background: #ffffff;
+      background: #141414;
       border-radius: 20px;
       padding: 28px 24px;
       width: 100%;
       max-width: 380px;
-      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+      box-shadow: 0 20px 60px rgba(0,0,0,0.8);
+      border: 1px solid #2a2a2a;
       border-left: 6px solid #e10600;
     ">
-      <h2 style="margin:0 0 6px; font-size:1.1rem; color:#111;">
+      <h2 style="margin:0 0 6px; font-size:1.1rem; color:#f0f0f0;">
         📝 Session Note
       </h2>
-      <p style="margin:0 0 16px; font-size:0.85rem; color:#6b7280;">
+      <p style="margin:0 0 16px; font-size:0.85rem; color:#888;">
         ${eventName}
       </p>
       <input
@@ -1163,7 +1164,9 @@ function showNotePopup() {
           width: 100%;
           padding: 12px 14px;
           border-radius: 12px;
-          border: 1.5px solid #d1d5db;
+          border: 1.5px solid #2a2a2a;
+          background: #1a1a1a;
+          color: #d0d0d0;
           font-size: 0.95rem;
           box-sizing: border-box;
           outline: none;
@@ -1187,8 +1190,8 @@ function showNotePopup() {
           flex:1;
           padding: 12px;
           border-radius: 12px;
-          background: #f3f4f6;
-          color: #6b7280;
+          background: #1e1e1e;
+          color: #888; border: 1px solid #2a2a2a;
           font-weight: 600;
           font-size: 0.95rem;
           border: none;
