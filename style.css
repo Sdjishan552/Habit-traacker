@@ -8,8 +8,8 @@
 body {
   margin: 0;
   min-height: 100vh;
-  background: linear-gradient(135deg, #f7f3eb, #eef6f8);
-  color: #2b2b2b;
+  background: #0a0a0a;
+  color: #e8e8e8;
   display: flex;
   flex-direction: column;
 }
@@ -26,12 +26,13 @@ header h1 {
   font-size: 1.7rem;
   font-weight: 600;
   letter-spacing: 0.2px;
+  color: #f0f0f0;
 }
 
 header div {
   margin-top: 6px;
   font-size: 0.9rem;
-  color: #5f6b73;
+  color: #888;
 }
 
 /* ================= MAIN ================= */
@@ -44,62 +45,40 @@ main {
   gap: 18px;
 }
 
-
 /* ================= CARD ================= */
-
-/* ================= CARD (ELEGANT) ================= */
 
 .card {
   width: 100%;
   max-width: 420px;
   padding: 22px 22px 20px;
   border-radius: 16px;
-
-  background: #ffffff;
-
-  border-left: 6px solid #e10600; /* JARVIS RED STRIPE */
-
+  background: #141414;
+  border-left: 6px solid #e10600;
   box-shadow:
-    0 12px 28px rgba(0,0,0,0.08),
-    0 4px 10px rgba(0,0,0,0.04);
-
+    0 12px 32px rgba(0,0,0,0.6),
+    0 4px 12px rgba(0,0,0,0.4),
+    inset 0 1px 0 rgba(255,255,255,0.04);
   position: relative;
   overflow: hidden;
-
   animation: cardEnter 0.3s ease;
 }
 
-/* Ticket cut effect */
 .card::before,
 .card::after {
   content: "";
   position: absolute;
   width: 22px;
   height: 22px;
-  background: #eef6f8;
+  background: #0a0a0a;
   border-radius: 50%;
   left: -11px;
 }
 
-.card::before {
-  top: 25%;
-}
-
-.card::after {
-  bottom: 25%;
-}
-
-
+.card::before { top: 25%; }
 
 @keyframes cardEnter {
-  from {
-    opacity: 0;
-    transform: translateY(10px) scale(0.98);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
+  from { opacity: 0; transform: translateY(10px) scale(0.98); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
 }
 
 /* ================= CARD TYPOGRAPHY ================= */
@@ -108,131 +87,54 @@ main {
   margin: 0 0 10px;
   font-size: 1.2rem;
   font-weight: 700;
-  color: #111827;
+  color: #f5f5f5;
   letter-spacing: 0.5px;
 }
 
+.card h3 {
+  color: #d0d0d0;
+  font-size: 1rem;
+}
 
 .card p {
   margin: 8px 0;
   font-size: 0.92rem;
-  color: #5a5f66;
+  color: #aaa;
   line-height: 1.6;
 }
 
-/* First line (Date) smaller & subtle */
 .card p:first-of-type {
   font-size: 0.8rem;
-  color: #8a9096;
+  color: #666;
   letter-spacing: 0.4px;
 }
 
-/* Time Range */
 .card p:nth-of-type(2) {
   font-weight: 600;
-  color: #1e2a32;
+  color: #d0d0d0;
 }
 
-/* Severity */
 .card p:nth-of-type(3) {
   font-size: 0.85rem;
-  color: #6b7280;
+  color: #888;
 }
 
+.card p + p { margin-top: 8px; }
 
-/* Subtle divider */
-.card p + p {
-  margin-top: 8px;
-}
-
-/* ================= STATUS (Started / Pending) ================= */
+/* ================= STATUS ================= */
 
 .status-started {
   margin-top: 14px;
   padding: 10px 14px;
   border-radius: 14px;
-
   display: flex;
   align-items: center;
   gap: 10px;
-
-  background: linear-gradient(
-    135deg,
-    rgba(46,204,113,0.15),
-    rgba(46,204,113,0.08)
-  );
-
-  color: #1f7a55;
+  background: rgba(0, 230, 118, 0.1);
+  border: 1px solid rgba(0, 230, 118, 0.25);
+  color: #00e676;
   font-weight: 600;
   font-size: 0.9rem;
-}
-
-.status-started::before {
-  content: "";
-  width: 12px;
-  height: 12px;
-  border-radius: 50%;
-  background: #2ecc71;
-  box-shadow: 0 0 0 4px rgba(46,204,113,0.18);
-}
-
-.status-pending {
-  margin-top: 14px;
-  padding: 10px 14px;
-  border-radius: 14px;
-
-  background: linear-gradient(
-    135deg,
-    rgba(255,193,7,0.18),
-    rgba(255,193,7,0.10)
-  );
-
-  color: #9a6700;
-  font-weight: 600;
-  font-size: 0.9rem;
-}
-
-/* ================= PRIMARY BUTTON (INSIDE CARD) ================= */
-
-.start-btn {
-  width: 100%;
-  margin-top: 18px;
-  padding: 12px 16px;
-  border-radius: 16px;
-
-  background: linear-gradient(135deg, #4f9ecb, #2c7aa1);
-  color: #ffffff;
-  font-size: 0.95rem;
-  font-weight: 600;
-  letter-spacing: 0.3px;
-
-  box-shadow:
-    0 12px 28px rgba(44,122,161,0.35),
-    inset 0 1px 0 rgba(255,255,255,0.25);
-
-  transition: transform 0.15s ease, box-shadow 0.15s ease;
-}
-
-.start-btn:hover {
-  transform: translateY(-1px);
-  box-shadow:
-    0 16px 36px rgba(44,122,161,0.45),
-    inset 0 1px 0 rgba(255,255,255,0.25);
-}
-
-.start-btn:active {
-  transform: scale(0.98);
-}
-
-/* ================= STATUS TEXT ================= */
-
-.status-started {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-top: 10px;
-  font-weight: 600;
-  color: #1f7a55;
 }
 
 .status-started::before {
@@ -240,88 +142,79 @@ main {
   width: 10px;
   height: 10px;
   border-radius: 50%;
-  background: #2ecc71;
+  background: #00e676;
+  box-shadow: 0 0 8px rgba(0,230,118,0.7);
+  flex-shrink: 0;
 }
 
 .status-pending {
-  color: #9a6700;
+  margin-top: 14px;
+  padding: 10px 14px;
+  border-radius: 14px;
+  background: rgba(255, 193, 7, 0.1);
+  border: 1px solid rgba(255, 193, 7, 0.25);
+  color: #ffc107;
   font-weight: 600;
-}
-
-/* ================= ADMIN EVENT ROW ================= */
-
-.event-row {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.event-row label {
-  font-size: 0.75rem;
-  color: #666;
-}
-
-.event-row input,
-.event-row select {
-  width: 100%;
-  padding: 9px 12px;
-  border-radius: 10px;
-  border: 1px solid #ddd;
   font-size: 0.9rem;
-  background: #fafafa;
-}
-
-.event-row input:focus,
-.event-row select:focus {
-  outline: none;
-  border-color: #8cbcd0;
-  background: #fff;
 }
 
 /* ================= BUTTONS ================= */
 
 button {
-  border: none;
+  border: 1px solid #2a2a2a;
   border-radius: 14px;
   padding: 11px 16px;
   font-size: 0.95rem;
   cursor: pointer;
-  background: #e9f1f5;
-  color: #1f4f63;
+  background: #1e1e1e;
+  color: #d0d0d0;
   transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.2s;
 }
 
 button:hover {
-  background: #d7e8ef;
-  box-shadow: 0 6px 14px rgba(0,0,0,0.08);
+  background: #252525;
+  box-shadow: 0 6px 14px rgba(0,0,0,0.5);
+  color: #f0f0f0;
+  border-color: #3a3a3a;
 }
 
-button:active {
-  transform: scale(0.97);
-}
+button:active { transform: scale(0.97); }
 
-/* PRIMARY ACTION (Start / Mark) */
+/* PRIMARY ACTION */
 .start-btn {
   width: 100%;
   margin-top: 14px;
-  background: linear-gradient(135deg, #4f9ecb, #2c7aa1);
+  padding: 12px 16px;
+  border-radius: 16px;
+  background: linear-gradient(135deg, #e10600, #a00400);
   color: #fff;
-  font-weight: 600;
-  box-shadow: 0 10px 24px rgba(44,122,161,0.35);
+  font-weight: 700;
+  font-size: 0.95rem;
+  letter-spacing: 0.3px;
+  border: none;
+  box-shadow: 0 8px 24px rgba(225,6,0,0.4);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
 }
 
 .start-btn:hover {
-  background: linear-gradient(135deg, #3e8bb6, #236685);
+  background: linear-gradient(135deg, #ff2016, #c00500);
+  box-shadow: 0 12px 32px rgba(225,6,0,0.55);
+  transform: translateY(-1px);
+  color: #fff;
 }
+
+.start-btn:active { transform: scale(0.98); }
 
 /* Delete button */
 .event-row button {
-  background: #fbeaea;
-  color: #a33;
+  background: rgba(220,38,38,0.12);
+  color: #f87171;
+  border: 1px solid rgba(220,38,38,0.25);
 }
 
 .event-row button:hover {
-  background: #f5cfcf;
+  background: rgba(220,38,38,0.22);
+  color: #fca5a5;
 }
 
 /* ================= FOOTER ================= */
@@ -335,115 +228,151 @@ footer {
   display: flex;
   justify-content: center;
   gap: 12px;
-  background: rgba(240, 236, 227, 0.85);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border-top: 1px solid rgba(0,0,0,0.06);
+  background: rgba(10,10,10,0.82);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-top: 1px solid rgba(255,255,255,0.06);
   z-index: 100;
 }
 
 footer button {
   min-width: 90px;
-  background: #ffffff;
-  box-shadow: 0 6px 16px rgba(0,0,0,0.10);
+  background: #1a1a1a;
+  color: #d0d0d0;
+  border: 1px solid #2a2a2a;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.5);
   font-weight: 600;
 }
 
-/* ================= CANVAS (CHARTS) ================= */
-
-canvas {
-  max-width: 100%;
-  height: auto;
+footer button:hover {
+  background: #222;
+  color: #fff;
+  border-color: #e10600;
 }
 
-/* ================= MOBILE TWEAK ================= */
+/* ================= ADMIN EVENT ROW ================= */
+
+.event-row {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.event-row label {
+  font-size: 0.75rem;
+  color: #888;
+}
+
+.event-row input,
+.event-row select {
+  width: 100%;
+  padding: 9px 12px;
+  border-radius: 10px;
+  border: 1px solid #2a2a2a;
+  font-size: 0.9rem;
+  background: #1a1a1a;
+  color: #d0d0d0;
+}
+
+.event-row input:focus,
+.event-row select:focus {
+  outline: none;
+  border-color: #e10600;
+  background: #1e1e1e;
+  box-shadow: 0 0 0 3px rgba(225,6,0,0.15);
+}
+
+/* ================= CANVAS ================= */
+
+canvas { max-width: 100%; height: auto; }
+
+/* ================= MOBILE ================= */
 
 @media (max-width: 480px) {
-  header h1 {
-    font-size: 1.45rem;
-  }
-
-  .card {
-    padding: 16px;
-  }
-}
-/* ===== LIVE TIME DISPLAY ===== */
-
-.live-time {
-  font-size: 1.8rem;
-  font-weight: 700;
-  color: #1f4f63;
-  margin: 6px 0 2px;
+  header h1 { font-size: 1.45rem; }
+  .card { padding: 16px; }
 }
 
-.live-date {
-  font-size: 0.85rem;
-  color: #777;
-  margin-bottom: 10px;
-}
+/* ================= LIVE CLOCK ================= */
+
 .live-clock {
   text-align: center;
   font-size: 2rem;
   font-weight: 600;
   margin-top: 12px;
   margin-bottom: 6px;
-  letter-spacing: 1px;
-  color: #1f4f63;
+  letter-spacing: 2px;
+  color: #e10600;
+  text-shadow: 0 0 20px rgba(225,6,0,0.35);
 }
+
+.live-time {
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: #e10600;
+  margin: 6px 0 2px;
+}
+
+.live-date {
+  font-size: 0.85rem;
+  color: #666;
+  margin-bottom: 10px;
+}
+
+/* ================= HISTORY ================= */
+
 .history-day-card:hover {
-  background: #f0f8ff;
-  border: 1px solid #2196f3;
+  background: #1a1a1a !important;
+  border: 1px solid #e10600 !important;
   transform: scale(1.02);
   transition: all 0.2s;
 }
-/* ================= ADMIN PANEL UPGRADE ================= */
 
-/* ================= ADMIN WHITE PROFESSIONAL ================= */
+/* ================= ADMIN PANEL ================= */
 
-.admin-body {
-  background: #ffffff;
-}
+.admin-body { background: #0a0a0a; }
 
 .admin-body header h1 {
   font-weight: 700;
   letter-spacing: 0.5px;
-  color: #1e2a32;
+  color: #f0f0f0;
 }
 
 .admin-body header div {
-  color: #6b7280;
+  color: #888;
   font-size: 0.9rem;
 }
 
 .admin-card {
-  background: #ffffff;
+  background: #141414;
   border-radius: 16px;
   padding: 30px;
-  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.12);
-  border: 1px solid #e5e7eb;
+  box-shadow: 0 25px 60px rgba(0,0,0,0.7);
+  border: 1px solid #222;
 }
 
 .admin-card h2 {
   margin-bottom: 20px;
   font-weight: 600;
-  color: #111827;
+  color: #f0f0f0;
 }
 
 .admin-card input {
   width: 100%;
   padding: 12px 14px;
   border-radius: 10px;
-  border: 1px solid #d1d5db;
-  background: #f9fafb;
+  border: 1px solid #2a2a2a;
+  background: #1a1a1a;
+  color: #d0d0d0;
   font-size: 0.95rem;
   transition: 0.2s ease;
 }
 
 .admin-card input:focus {
   outline: none;
-  background: #ffffff;
-  border-color: #2563eb;
-  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+  background: #1e1e1e;
+  border-color: #e10600;
+  box-shadow: 0 0 0 3px rgba(225,6,0,0.15);
 }
 
 .admin-card button {
@@ -451,32 +380,31 @@ canvas {
   margin-top: 14px;
   padding: 12px;
   border-radius: 10px;
-  background: #111827;
+  background: #e10600;
   color: #ffffff;
   font-weight: 600;
+  border: none;
   transition: 0.2s ease;
 }
 
 .admin-card button:hover {
-  background: #0000;
+  background: #ff1a16;
   transform: translateY(-1px);
 }
 
-.system-status {
-  text-align: center;
-}
+/* ================= SYSTEM STATUS ================= */
+
+.system-status { text-align: center; }
 
 .system-version {
   font-size: 11px;
-  opacity: 0.8;        /* slightly higher so red is visible */
-  letter-spacing: 1px;
+  letter-spacing: 1.5px;
   margin-top: 2px;
-color: #e10600;
+  color: #e10600;
+  opacity: 0.9;
 }
 
-/* ===== ADMIN COUNTDOWN STYLING ===== */
-
-/* ===== HOME COUNTDOWN – JARVIS RED THEME ===== */
+/* ================= COUNTDOWN ================= */
 
 .countdown-section {
   margin-top: 10px;
@@ -487,35 +415,69 @@ color: #e10600;
   font-size: 1.1rem;
   font-weight: 700;
   letter-spacing: 0.5px;
-  color: #e10600; /* SAME AS JARVIS VERSION */
-  
-  padding: 6px 12px;
+  color: #e10600;
+  padding: 6px 14px;
   border-radius: 10px;
-
-  background: rgba(225, 6, 0, 0.08);
-  border: 1px solid rgba(225, 6, 0, 0.25);
-
+  background: rgba(225,6,0,0.1);
+  border: 1px solid rgba(225,6,0,0.3);
   display: inline-block;
+  text-shadow: 0 0 12px rgba(225,6,0,0.3);
 }
 
+/* ================= ADMIN BAR ================= */
 
-/* ===== ADMIN COUNTDOWN – BLUE CONTROL STYLE ===== */
+.admin-bar {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background: rgba(10,10,10,0.92);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  padding: 10px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+  flex-wrap: wrap;
+}
 
 .admin-bar .countdown-input {
-  background: rgba(44, 122, 161, 0.08);
-  border: 1px solid rgba(44, 122, 161, 0.25);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px;
+  border-radius: 14px;
+  background: rgba(44,122,161,0.12);
+  border: 1px solid rgba(44,122,161,0.3);
 }
 
-.admin-bar .countdown-input input[type="date"] {
-  border: 1px solid rgba(44, 122, 161, 0.4);
+.admin-bar .countdown-input input[type="date"],
+.admin-bar .countdown-input input[type="number"] {
+  border: none;
+  outline: none;
+  background: #1a1a1a;
+  color: #d0d0d0;
+  padding: 8px 10px;
+  border-radius: 10px;
+  font-size: 14px;
 }
 
 .admin-bar .countdown-input button {
+  padding: 8px 14px;
+  border-radius: 10px;
   background: linear-gradient(135deg, #4f9ecb, #2c7aa1);
   color: white;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  transition: 0.2s ease;
+  width: auto;
+  margin-top: 0;
 }
 
 .admin-bar .countdown-input button:hover {
+  transform: translateY(-1px);
   background: linear-gradient(135deg, #3e8bb6, #236685);
 }
 
@@ -526,127 +488,152 @@ color: #e10600;
   padding: 6px 10px;
 }
 
-.card::after {
-  content: "";
-  position: absolute;
-  left: 16px;
-  right: 16px;
-  bottom: 70px;
-  height: 1px;
-  background: rgba(0,0,0,0.05);
-}
-
-/* ===== ADMIN COUNTDOWN ROUNDED STYLE ===== */
-
-.admin-bar .countdown-input {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-
-  padding: 6px;
-  border-radius: 14px;              /* Rounded container */
-  background: rgba(44,122,161,0.08);
-  border: 1px solid rgba(44,122,161,0.25);
-}
-
-.admin-bar .countdown-input input[type="date"] {
-  border: none;
-  outline: none;
-  background: white;
-
-  padding: 8px 10px;
-  border-radius: 10px;              /* Rounded input */
-  font-size: 14px;
-}
-
-.admin-bar .countdown-input button {
-  padding: 8px 14px;
-  border-radius: 10px;              /* Rounded button */
-  background: linear-gradient(135deg, #4f9ecb, #2c7aa1);
-  color: white;
-  font-weight: 600;
-  border: none;
-  cursor: pointer;
-  transition: 0.2s ease;
-}
-
-.admin-bar .countdown-input button:hover {
-  transform: translateY(-1px);
-  background: linear-gradient(135deg, #3e8bb6, #236685);
-}
-
-/* ===== HOME STREAK STYLE ===== */
+/* ================= STREAK ================= */
 
 .streak-box {
   font-size: 1rem;
   font-weight: 700;
   color: #ff9800;
   margin-top: 6px;
-
-  padding: 6px 12px;
+  padding: 6px 14px;
   border-radius: 10px;
-
-  background: rgba(255, 152, 0, 0.08);
-  border: 1px solid rgba(255, 152, 0, 0.25);
-
+  background: rgba(255,152,0,0.1);
+  border: 1px solid rgba(255,152,0,0.3);
   display: inline-block;
+  text-shadow: 0 0 10px rgba(255,152,0,0.35);
 }
+
+/* ================= CURSOR ================= */
+
 #cursor {
   margin-left: 4px;
   font-weight: 900;
+  color: #e10600;
   animation: blink 1s infinite;
 }
 
 @keyframes blink {
   0%,100% { opacity: 1; }
-  50% { opacity: 0; }
+  50%      { opacity: 0; }
 }
 
-
-@keyframes blink {
-  0%,100% { opacity: 1; }
-  50% { opacity: 0; }
-}
+/* ================= HERO TEXT ================= */
 
 .home-header h1 {
   font-family: 'Montserrat', sans-serif;
   font-weight: 900;
   font-size: clamp(1.6rem, 5vw, 3rem);
-  color: #111;
-  text-shadow: 0 4px 12px rgba(0,0,0,0.25);
+  color: #f0f0f0;
+  text-shadow: 0 0 30px rgba(225,6,0,0.2), 0 4px 12px rgba(0,0,0,0.9);
   text-align: center;
   min-height: 70px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
 
-  white-space: nowrap;      /* 🔥 prevents line break */
-  overflow: hidden;         /* hides overflow */
-  text-overflow: ellipsis;  /* optional safety */
-}
 @media (max-width: 480px) {
-  .home-header h1 {
-    font-size: 1.4rem;
-  }
+  .home-header h1 { font-size: 1.4rem; }
 }
-/* --------------------------------------- */
+
 .hero-container {
   width: 90%;
   max-width: 700px;
-
   margin: 5px auto 0 auto;
-
-  min-height: unset;       /* 🔥 remove forced height */
-  padding: 0;              /* remove inner padding */
-
-  display: block;          /* remove flex vertical centering */
+  min-height: unset;
+  padding: 0;
+  display: block;
   text-align: center;
-
   font-family: 'Montserrat', sans-serif;
   font-weight: 900;
   font-size: clamp(1.3rem, 4vw, 2.2rem);
+  line-height: 1.2;
+  color: #f0f0f0;
+  text-shadow: 0 0 30px rgba(225,6,0,0.15), 0 4px 12px rgba(0,0,0,0.9);
+}
 
-  line-height: 1.2;        /* 🔥 tighten vertical spacing */
+/* ================= CARD SUCCESS ================= */
 
-  color: #111;
-  text-shadow: 
-    0 4px 12px rgba(0, 0, 0, 0.25),
-    0 0 20px rgba(0, 0, 0, 0.15);
+.card-success {
+  background: rgba(0,230,118,0.06) !important;
+  border-left-color: #00e676 !important;
+  transition: all 0.6s ease;
+}
+
+/* ================= GLOBAL DARK INPUTS ================= */
+
+select {
+  background: #1a1a1a;
+  color: #d0d0d0;
+  border: 1px solid #2a2a2a;
+}
+
+select option {
+  background: #1a1a1a;
+  color: #d0d0d0;
+}
+
+input[type="text"],
+input[type="password"],
+input[type="number"],
+input[type="time"],
+input[type="date"] {
+  background: #1a1a1a;
+  color: #d0d0d0;
+  border: 1px solid #2a2a2a;
+}
+
+input::placeholder { color: #555; }
+
+/* ================= RANGE BUTTONS ================= */
+
+.range-buttons {
+  margin-top: 12px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: center;
+}
+
+.range-buttons button {
+  background: #1e1e1e;
+  color: #aaa;
+  border: 1px solid #2a2a2a;
+  border-radius: 14px;
+  padding: 8px 14px;
+  font-weight: 600;
+}
+
+.range-buttons button:hover {
+  background: #252525;
+  color: #f0f0f0;
+  border-color: #e10600;
+}
+
+/* ================= BACK BUTTON (history) ================= */
+
+.back-btn {
+  padding: 10px 20px;
+  background: #e10600;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 16px;
+}
+
+.back-btn:hover {
+  background: #ff1a16;
+}
+
+/* ================= DETAIL CARD LIST ================= */
+
+.detail-card ul {
+  padding-left: 20px;
+  margin: 8px 0;
+}
+
+.detail-card li {
+  margin-bottom: 8px;
+  color: #aaa;
 }
