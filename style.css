@@ -37,7 +37,7 @@ header div {
 /* ================= MAIN ================= */
 
 main {
-  padding: 18px 14px 60px;
+  padding: 18px 14px 120px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -328,14 +328,18 @@ button:active {
 
 footer {
   position: fixed;
-  bottom: 12px;
+  bottom: 0;
   left: 0;
   right: 0;
-  padding: 10px 12px;
+  padding: 10px 12px 14px;
   display: flex;
   justify-content: center;
   gap: 12px;
-  background: transparent;
+  background: rgba(240, 236, 227, 0.85);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-top: 1px solid rgba(0,0,0,0.06);
+  z-index: 100;
 }
 
 footer button {
@@ -646,14 +650,3 @@ color: #e10600;
     0 4px 12px rgba(0, 0, 0, 0.25),
     0 0 20px rgba(0, 0, 0, 0.15);
 }
-
-
-
-
-
-
-
-
-
-
-
