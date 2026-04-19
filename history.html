@@ -74,23 +74,12 @@ const tt = getTimetable();
 
 const mainEvents = log.filter(e => e.phase !== "micro" && e.phase !== "hydration");
 
-// We use unique events + severity from timetable
-const uniqueNames = [...new Set(mainEvents.map(e => e.name))];
-
 let totalPossible = 0;
 let earned = 0;
 
-uniqueNames.forEach(name => {
-  const entry = mainEvents.find(e => e.name === name);
-  if (!entry) return;
-
-  const eventInTimetable = tt.find(ev => ev.name === name);
-  const severity = eventInTimetable ? eventInTimetable.severity : (entry.severity || 1);
-
-  const maxScore = severity * 10;
-
-  totalPossible += maxScore;
-  earned += entry.score || 0;
+mainEvents.forEach(entry => {
+  totalPossible += 10;
+  earned += (entry.score !== null && entry.score !== undefined) ? Math.min(entry.score, 10) : 0;
 });
 
 const percent = totalPossible > 0 ? Math.round((earned / totalPossible) * 100) : 0;
@@ -224,9 +213,11 @@ function showDayDetails(day, stats) {
         <ul>
           ${stats.events.map(e => `
             <li>
-              <strong>${e.name || 'Unnamed Event'}</strong><br>
-Score: ${e.score || 0} | Delay: ${e.delay === 999 ? "Missed" : (e.delay || 0) + " min"} |
+              <strong>${e.name || 'Unnamed Event'}</strong>
+              ${e.tag ? `<span style="font-size:0.78rem;background:#e8f4fd;color:#1565c0;padding:1px 7px;border-radius:6px;margin-left:4px;">🏷 ${e.tag}</span>` : ''}<br>
+              Score: ${e.score !== null && e.score !== undefined ? e.score : 0}/10 | Delay: ${e.delay === 999 ? "Missed" : (e.delay || 0) + " min"} |
               ${e.score > 0 ? 'Completed' : (e.delay === 999 ? 'Missed' : 'Late / Partial')}
+              ${e.note ? `<br><span style="font-size:0.82rem;color:#888;font-style:italic;">📝 ${e.note}</span>` : ''}
             </li>
           `).join('')}
         </ul>
