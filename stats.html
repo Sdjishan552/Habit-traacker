@@ -8,6 +8,24 @@
   <link rel="stylesheet" href="style.css">
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="app.js"></script>
+
+<style>
+footer {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 10px 12px 14px;
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  background: rgba(240, 236, 227, 0.85);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-top: 1px solid rgba(0,0,0,0.06);
+  z-index: 100;
+}
+</style>
 </head>
 <body>
 
@@ -30,14 +48,7 @@
 </header>
 
 
-<main style="
-  padding:10px;
-  display:flex;
-  flex-direction:column;
-  gap:16px;
-  max-width:900px;
-  margin:0 auto;
-">
+<main style="padding: 18px 14px 130px; display:flex; flex-direction:column; gap:16px; max-width:900px; margin:0 auto;">
 
   <!-- DISCIPLINE -->
   <div class="card">
@@ -114,10 +125,13 @@ function getTimetable() {
 
 function getLogs(daysBack) {
   const out = [];
+  const trackingStart = localStorage.getItem("trackingStartDate") || null;
   for (let i = 0; i < daysBack; i++) {
     const d = new Date();
     d.setDate(d.getDate() - i);
     const key = todayKey(d);
+    // Skip days before tracking start
+    if (trackingStart && key < trackingStart) continue;
     const log = JSON.parse(localStorage.getItem(key));
     if (log) out.push({ date: key, log });
   }
@@ -361,7 +375,7 @@ charts.push(new Chart(getCanvas("delayBar"), {
   // ──────────────────────────────────────────────
   // Category Performance (Bar)
   // ──────────────────────────────────────────────
-  const TAGS = ["Study", "Deep Work", "Exercise", "Break", "Admin", "Personal", "General"];
+  const TAGS = ["Study", "Workout", "General"];
   const tagSum   = {}, tagCount = {};
   TAGS.forEach(t => { tagSum[t] = 0; tagCount[t] = 0; });
 
@@ -376,7 +390,7 @@ charts.push(new Chart(getCanvas("delayBar"), {
 
   const usedTags    = TAGS.filter(t => tagCount[t] > 0);
   const tagAvgScores = usedTags.map(t => Math.round((tagSum[t] / tagCount[t]) * 10) / 10);
-  const tagColors    = ["#5c6bc0","#26a69a","#ef5350","#ffa726","#66bb6a","#ab47bc","#78909c"];
+  const tagColors    = ["#5c6bc0","#ef5350","#78909c"];
 
   charts.push(new Chart(getCanvas("categoryBar"), {
     type: "bar",
