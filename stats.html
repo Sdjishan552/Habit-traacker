@@ -77,8 +77,8 @@
   </div>
 
   <div class="card">
-    <h2>🔥 Severity Loss</h2>
-    <canvas id="pieChart"></canvas>
+    <h2>🏷 Category Performance</h2>
+    <canvas id="categoryBar"></canvas>
   </div>
 </main>
 
@@ -185,14 +185,9 @@ document.querySelectorAll('canvas').forEach(c => {
       if (!ev) return;
 
       if (nowMinutes() >= toMinutes(ev.end)) {
-        const delay = Math.max(0, entry.startedAt - toMinutes(ev.start));
-        let score = 0;
-        if (delay <= 15) {
-          score = entry.severity * 10 - delay;
-          if (score < 0) score = 0;
-        }
+        const delay = Math.max(0, (entry.startedAt || 0) - toMinutes(ev.start));
         entry.delay = delay;
-        entry.score = score;
+        entry.score = Math.max(0, 10 - delay);
         updated = true;
       }
     });
@@ -206,14 +201,13 @@ document.querySelectorAll('canvas').forEach(c => {
   // ──────────────────────────────────────────────
   const dLabels = data.map(d => formatDateDMY(d.date));
   const dPercents = data.map(d => {
-    let max = 0, got = 0;
+    let total = 0, got = 0;
     d.log.forEach(e => {
       if (e.phase === "micro" || e.phase === "hydration") return;
-      const score = e.score !== null ? e.score : (e.started ? e.severity * 10 : 0);
-      max += e.severity * 10;
-      got += score;
+      total += 10;
+      got += (e.score !== null && e.score !== undefined) ? Math.min(e.score, 10) : 0;
     });
-    return max ? Math.round((got / max) * 100) : 0;
+    return total ? Math.round((got / total) * 100) : 0;
   });
 
   charts.push(new Chart(getCanvas("lineChart"), {
@@ -238,12 +232,11 @@ document.querySelectorAll('canvas').forEach(c => {
   // ──────────────────────────────────────────────
   // Phase Performance (Bar)
   // ──────────────────────────────────────────────
-  const pSum = {1:0,2:0,3:0,4:0}, pMax = {1:0,2:0,3:0,4:0};
+  const pSum = {1:0,2:0,3:0,4:0}, pCount = {1:0,2:0,3:0,4:0};
   data.forEach(d => d.log.forEach(e => {
     if (e.phase === "micro" || e.phase === "hydration") return;
-    const score = e.score !== null ? e.score : (e.started ? e.severity * 10 : 0);
-    pSum[e.phase] += score;
-    pMax[e.phase] += e.severity * 10;
+    pSum[e.phase]   = (pSum[e.phase]   || 0) + (e.score !== null && e.score !== undefined ? Math.min(e.score, 10) : 0);
+    pCount[e.phase] = (pCount[e.phase] || 0) + 1;
   }));
 
   charts.push(new Chart(getCanvas("barChart"), {
@@ -251,14 +244,14 @@ document.querySelectorAll('canvas').forEach(c => {
     data: {
       labels: ["Phase 1", "Phase 2", "Phase 3", "Phase 4"],
       datasets: [{
-        label: "Average %",
-        data: [1,2,3,4].map(p => pMax[p] ? Math.round(pSum[p] / pMax[p] * 100) : 0),
+        label: "Average Score /10",
+        data: [1,2,3,4].map(p => pCount[p] ? Math.round((pSum[p] / pCount[p]) * 10) / 10 : 0),
         backgroundColor: ["#4caf50", "#2196f3", "#ff9800", "#f44336"]
       }]
     },
     options: {
       responsive: true,
-      scales: { y: { beginAtZero: true, max: 100 } }
+      scales: { y: { beginAtZero: true, max: 10 } }
     }
   }));
 
@@ -270,33 +263,29 @@ const wLabels = [], wData = [];
 
 data.forEach(d => {
   let dayWaste = 0, dayScheduled = 0;
-  
+
   if (tt.length > 0) {
-dayScheduled = getTotalUniqueScheduledMinutes(tt);    
+    dayScheduled = getTotalUniqueScheduledMinutes(tt);
     let earnedMinutes = 0;
     d.log.forEach(entry => {
       if (entry.phase === "micro" || entry.phase === "hydration") return;
       const ev = tt.find(te => te.name === entry.name);
       if (!ev) return;
-      
       const duration = toMinutes(ev.end) - toMinutes(ev.start);
-      const maxScore = entry.severity * 10;
-      const tempScore = entry.score !== null ? entry.score : (entry.started ? maxScore : 0);
-      earnedMinutes += Math.round(duration * (tempScore / maxScore));
+      const score = entry.score !== null && entry.score !== undefined ? Math.min(entry.score, 10) : 0;
+      earnedMinutes += Math.round(duration * (score / 10));
     });
-    
+
     dayWaste = dayScheduled - earnedMinutes;
     if (dayWaste < 0) dayWaste = 0;
-    
-    // If no main discipline events were even started → full day wasted
+
     if (!d.log.some(e => e.phase !== "micro" && e.phase !== "hydration")) {
       dayWaste = dayScheduled;
     }
   }
-  
+
   wLabels.push(formatDateDMY(d.date));
   wData.push(dayWaste);
-  
   totalScheduled += dayScheduled;
   totalWaste += dayWaste;
 });
@@ -370,58 +359,41 @@ charts.push(new Chart(getCanvas("delayBar"), {
   }
 }));
   // ──────────────────────────────────────────────
-  // Severity Loss (Pie) – improved no-data
+  // Category Performance (Bar)
   // ──────────────────────────────────────────────
-  const loss = {1:0, 2:0, 3:0};
-  const maxLoss = {1:0, 2:0, 3:0};
-  let hasSeverityData = false;
+  const TAGS = ["Study", "Deep Work", "Exercise", "Break", "Admin", "Personal", "General"];
+  const tagSum   = {}, tagCount = {};
+  TAGS.forEach(t => { tagSum[t] = 0; tagCount[t] = 0; });
 
   data.forEach(d => d.log.forEach(e => {
     if (e.phase === "micro" || e.phase === "hydration") return;
-    if (e.score == null || e.delay === 999) return;
-    const m = e.severity * 10;
-    loss[e.severity] += m - e.score;
-    maxLoss[e.severity] += m;
-    hasSeverityData = true;
+    const t = e.tag || "General";
+    if (!tagSum[t])   tagSum[t]   = 0;
+    if (!tagCount[t]) tagCount[t] = 0;
+    tagSum[t]   += (e.score !== null && e.score !== undefined) ? Math.min(e.score, 10) : 0;
+    tagCount[t] += 1;
   }));
 
-  if (!hasSeverityData || Object.values(maxLoss).every(v => v === 0)) {
-    charts.push(new Chart(getCanvas("pieChart"), {
-      type: "pie",
-      data: {
-        labels: ["No completed events"],
-        datasets: [{ data: [1], backgroundColor: ["#9e9e9e"] }]
-      },
-      options: {
-        responsive: true,
-        plugins: {
-          legend: { position: "bottom" },
-          title: { display: true, text: "Severity Loss\n(No Data Yet)", font: { size: 16 } }
-        }
-      }
-    }));
-  } else {
-    const lossPct = {
-      1: maxLoss[1] ? Math.round(loss[1] / maxLoss[1] * 100) : 0,
-      2: maxLoss[2] ? Math.round(loss[2] / maxLoss[2] * 100) : 0,
-      3: maxLoss[3] ? Math.round(loss[3] / maxLoss[3] * 100) : 0,
-    };
+  const usedTags    = TAGS.filter(t => tagCount[t] > 0);
+  const tagAvgScores = usedTags.map(t => Math.round((tagSum[t] / tagCount[t]) * 10) / 10);
+  const tagColors    = ["#5c6bc0","#26a69a","#ef5350","#ffa726","#66bb6a","#ab47bc","#78909c"];
 
-    charts.push(new Chart(getCanvas("pieChart"), {
-      type: "pie",
-      data: {
-        labels: ["Severity 1", "Severity 2", "Severity 3"],
-        datasets: [{
-          data: [lossPct[1], lossPct[2], lossPct[3]],
-          backgroundColor: ["#81c784", "#ffb74d", "#e57373"]
-        }]
-      },
-      options: {
-        responsive: true,
-        plugins: { legend: { position: "bottom" } }
-      }
-    }));
-  }
+  charts.push(new Chart(getCanvas("categoryBar"), {
+    type: "bar",
+    data: {
+      labels: usedTags.length ? usedTags : ["No data"],
+      datasets: [{
+        label: "Avg Score /10",
+        data: usedTags.length ? tagAvgScores : [0],
+        backgroundColor: usedTags.map((_, i) => tagColors[i % tagColors.length])
+      }]
+    },
+    options: {
+      responsive: true,
+      scales: { y: { beginAtZero: true, max: 10, ticks: { stepSize: 1 } } },
+      plugins: { legend: { display: false } }
+    }
+  }));
 
   // ──────────────────────────────────────────────
   // Hydration Trend (Line) + Consistency (Bar)
@@ -479,7 +451,7 @@ function simulateAutoMissForToday(tt, log, nowMin) {
       updatedLog.push({
         name: ev.name,
         phase: ev.phase,
-        severity: ev.severity,
+        tag: ev.tag || "General",
         delay: 999,
         score: 0,
         autoMissed: true
