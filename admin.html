@@ -84,6 +84,16 @@
   <input type="file" id="importFileInput" accept=".json,.xlsx,.xls"
          style="display:none;" onchange="handleImportFile(event)">
 
+  <div class="countdown-input" style="border-color:rgba(225,6,0,0.35); background:rgba(225,6,0,0.06);">
+    <span style="font-size:13px; font-weight:600; color:#b91c1c; white-space:nowrap;">📅 Track from</span>
+    <input type="date" id="trackingStartInput"
+           style="border-color:rgba(225,6,0,0.4);">
+    <button onclick="saveTrackingStart()"
+            style="background:linear-gradient(135deg,#e10600,#b91c1c); color:white;">Set</button>
+    <button onclick="clearTrackingStart()"
+            style="background:#f3f4f6; color:#6b7280; font-size:12px; padding:6px 10px;">Clear</button>
+  </div>
+
 </div>
 
 <main id="main"></main>
@@ -166,8 +176,37 @@ function loadAdmin() {
   const el = document.getElementById("waterIntervalInput");
   if (el) el.value = savedInterval ? savedInterval : 60;
 
+  loadTrackingStartInput();
+
   render();
 }
+
+/* ================= TRACKING START DATE ================= */
+
+function saveTrackingStart() {
+  const input = document.getElementById("trackingStartInput");
+  if (!input || !input.value) {
+    alert("Please select a date.");
+    return;
+  }
+  localStorage.setItem("trackingStartDate", input.value);
+  alert("✅ Tracking will begin from " + input.value + ".\nDays before this are excluded from scores.");
+}
+
+function clearTrackingStart() {
+  localStorage.removeItem("trackingStartDate");
+  const input = document.getElementById("trackingStartInput");
+  if (input) input.value = "";
+  alert("✅ Tracking start cleared. All days are now counted.");
+}
+
+function loadTrackingStartInput() {
+  const saved = localStorage.getItem("trackingStartDate");
+  const input = document.getElementById("trackingStartInput");
+  if (input && saved) input.value = saved;
+}
+
+/* ================= END TRACKING START DATE ================= */
 
 /* ================= WATER INTERVAL ================= */
 
@@ -216,7 +255,7 @@ function render() {
 
       <label>Category</label>
       <select class="tag">
-        ${["Study","Deep Work","Exercise","Break","Admin","Personal","General"].map(t =>
+        ${["Study","Workout","General"].map(t =>
           `<option value="${t}" ${(event.tag||"General")===t?'selected':''}>${t}</option>`
         ).join("")}
       </select>
@@ -447,7 +486,7 @@ function parseImportedData(rows) {
     ).trim();
 
     // Normalize tag to allowed values
-    const allowedTags = ["Study","Workout","General","Deep Work","Exercise","Break","Admin","Personal"];
+    const allowedTags = ["Study","Workout","General"];
     const tag = allowedTags.find(t => t.toLowerCase() === rawTag.toLowerCase()) || "General";
 
     // ── Normalize time: accept "8:30", "08:30", "8:30 AM", "08:30:00" ──
