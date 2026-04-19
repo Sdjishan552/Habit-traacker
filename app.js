@@ -104,6 +104,24 @@ function todayKey() {
   return new Date().toISOString().split("T")[0];
 }
 
+/* ========= TRACKING START DATE ========= */
+// Returns YYYY-MM-DD string or null
+function getTrackingStartDate() {
+  return localStorage.getItem("trackingStartDate") || null;
+}
+
+// Returns true if the given dateKey (YYYY-MM-DD) should be tracked
+function isTrackingActiveForDate(dateKey) {
+  const start = getTrackingStartDate();
+  if (!start) return true; // no restriction set
+  return dateKey >= start;
+}
+
+// Is tracking active for TODAY?
+function isTrackingActiveToday() {
+  return isTrackingActiveForDate(todayKey());
+}
+
 /* ========= STORAGE ========= */
 function getLog() {
   try {
@@ -156,6 +174,7 @@ function getTimetable() {
 const GRACE_MINUTES = 15; // card stays visible this long after event ends
 
 function getCurrentMainEvent() {
+  if (!isTrackingActiveToday()) return [];
   const now = nowMinutes();
   const timetable = getTimetable();
   const log = getLog();
@@ -251,7 +270,22 @@ function render() {
 
     container.innerHTML = ""; // clear old content
     
-    const activeEvents = getCurrentMainEvent();
+    // ✅ Check if tracking is active for today
+    if (!isTrackingActiveToday()) {
+      const startDate = getTrackingStartDate();
+      const phaseInfo = document.getElementById("phaseInfo");
+      if (phaseInfo) phaseInfo.innerText = "Tracking Pending";
+      const waitCard = document.createElement("div");
+      waitCard.className = "card";
+      waitCard.innerHTML = `
+        <h2>⏳ Tracking Starts Soon</h2>
+        <p>You've set tracking to begin on <strong>${startDate}</strong>.</p>
+        <p style="font-size:0.85rem;color:#888;">Events won't be scored until that date. Relax — you're on schedule.</p>
+        <p style="font-size:0.8rem;color:#aaa;margin-top:8px;">You can change this in ⚙️ Admin → Track from date.</p>
+      `;
+      container.appendChild(waitCard);
+      return;
+    }
     const log = getLog();
     const waterInfo = shouldShowWaterReminder();
 
@@ -431,6 +465,9 @@ function finalizeMainEvent(entry) {
 }
 
 function autoMiss() {
+  // Don't auto-miss or penalize if tracking hasn't started yet
+  if (!isTrackingActiveToday()) return;
+
   const now = nowMinutes();
   const timetable = getTimetable();
   const log = getLog();
@@ -658,6 +695,8 @@ function getCurrentWaterSlot() {
 }
 
 function shouldShowWaterReminder() {
+  if (!isTrackingActiveToday()) return null;
+
   const dayStart = getDayStartMinute();
   if (dayStart === null) return null;
 
@@ -854,6 +893,9 @@ function updateHomeStreak() {
     const d = new Date();
     d.setDate(today.getDate() - i);
     const key = d.toISOString().split("T")[0];
+
+    // Skip days before tracking start date
+    if (!isTrackingActiveForDate(key)) break;
 
     const log = JSON.parse(localStorage.getItem(key));
     if (!log) break;
