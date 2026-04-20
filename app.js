@@ -175,7 +175,8 @@ function getTimetable() {
 
 
 /* ========= CURRENT EVENT ========= */
-const GRACE_MINUTES = 15; // card stays visible this long after event ends
+const GRACE_MINUTES   = 15; // card stays visible this long after event ends
+const PREVIEW_MINUTES = 30; // show next event card this many minutes before start (button locked)
 
 function getCurrentMainEvent() {
   if (!isTrackingActiveToday()) return [];
@@ -187,41 +188,41 @@ function getCurrentMainEvent() {
     let start = toMinutes(e.start);
     let end   = toMinutes(e.end);
 
-    // ✅ FIX: nextDay events — their "end" time is on the next calendar day
-    // We represent this as end + 1440 (minutes in a day)
-    // We check against current time ONLY if we're in the post-midnight window (now < 360 = before 6am)
+    // ✅ FIX: nextDay events
     if (e.nextDay) {
-      // This event runs from e.g. 22:00 (yesterday evening) to 01:00 (tonight/this morning)
-      // It should show: either now is after start (last night), OR now is before end (this morning)
-      const endNextDay = end; // e.g. 60 = 1:00 AM
-      const isPostMidnight = now < 360; // before 6am = we're in the "continuation" window
+      const endNextDay = end;
+      const isPostMidnight = now < 360;
 
       if (isPostMidnight) {
-        // We're past midnight — show if we haven't passed the end time yet
         const inWindow = now < endNextDay;
         const inGrace = now >= endNextDay && now < endNextDay + GRACE_MINUTES;
         const alreadyLogged = log.some(l => l.name === e.name);
-        // Use yesterday's log for nextDay events
         const yesterdayKey = getYesterdayKey();
         const yesterdayLog = JSON.parse(localStorage.getItem(yesterdayKey) || "[]");
         const loggedYesterday = yesterdayLog.some(l => l.name === e.name);
+        e._upcoming = false;
         return (inWindow || (inGrace && !loggedYesterday)) && !alreadyLogged;
       } else {
-        // We're in the evening — show if now is past start time
-        const inWindow = now >= start;
+        const inPreview = now >= start - PREVIEW_MINUTES && now < start;
+        const inWindow  = now >= start;
         const alreadyLogged = log.some(l => l.name === e.name);
-        // Check yesterday's log too (in case they already logged it last night)
         const yesterdayKey = getYesterdayKey();
         const yesterdayLog = JSON.parse(localStorage.getItem(yesterdayKey) || "[]");
         const loggedYesterday = yesterdayLog.some(l => l.name === e.name);
-        return inWindow && !alreadyLogged && !loggedYesterday;
+        e._upcoming = inPreview;
+        return (inWindow || inPreview) && !alreadyLogged && !loggedYesterday;
       }
     }
 
     // Normal (same-day) events
-    const inGrace = now >= end && now < end + GRACE_MINUTES;
+    const inGrace   = now >= end   && now < end   + GRACE_MINUTES;
+    const inPreview = now >= start - PREVIEW_MINUTES && now < start;
     const alreadyLogged = log.some(l => l.name === e.name);
-    return (now >= start && now < end) || (inGrace && !alreadyLogged);
+
+    // Tag whether this event hasn't started yet (for button locking in render)
+    e._upcoming = inPreview;
+
+    return (now >= start && now < end) || (inGrace && !alreadyLogged) || (inPreview && !alreadyLogged);
   });
 }
 
@@ -395,25 +396,48 @@ function render() {
 
       let actionHTML = '';
       if (!entry) {
-        const graceWarning = isGrace
-          ? '<p style="font-size:0.8rem;color:#e67e22;font-weight:700;">⚠ Grace period – log it now!</p>'
-          : '';
-        const btnLabel = isGrace ? '⚠ Log Late (Grace)' : '▶ Start Focus Mode';
-        actionHTML = graceWarning + `
-          <button class="start-btn"
-            data-name="${event.name}"
-            data-start="${event.start}"
-            data-end="${event.end}"
-            data-phase="${event.phase || 1}"
-            data-tag="${tag}">
-            ${btnLabel}
-          </button>`;
+        if (event._upcoming) {
+          // Event hasn't started yet — show locked preview card
+          const startIn = toMinutes(event.start) - nowM;
+          actionHTML = `
+            <div style="margin-top:14px; padding:10px 14px; border-radius:14px;
+                        background:rgba(255,193,7,0.07); border:1px solid rgba(255,193,7,0.25);
+                        display:flex; align-items:center; gap:10px;">
+              <span style="font-size:1.2rem;">⏳</span>
+              <span style="font-size:0.88rem; color:#ffc107; font-weight:600;">
+                Starts in ${startIn} min — locked until ${minutesToTime(toMinutes(event.start))}
+              </span>
+            </div>
+            <button class="start-btn" disabled
+              style="margin-top:12px; opacity:0.35; cursor:not-allowed; filter:grayscale(1);"
+              data-name="${event.name}"
+              data-start="${event.start}"
+              data-end="${event.end}"
+              data-phase="${event.phase || 1}"
+              data-tag="${tag}">
+              🔒 Not Started Yet
+            </button>`;
+        } else {
+          const graceWarning = isGrace
+            ? '<p style="font-size:0.8rem;color:#e67e22;font-weight:700;">⚠ Grace period – log it now!</p>'
+            : '';
+          const btnLabel = isGrace ? '⚠ Log Late (Grace)' : '▶ Start Focus Mode';
+          actionHTML = graceWarning + `
+            <button class="start-btn"
+              data-name="${event.name}"
+              data-start="${event.start}"
+              data-end="${event.end}"
+              data-phase="${event.phase || 1}"
+              data-tag="${tag}">
+              ${btnLabel}
+            </button>`;
+        }
       } else if (entry.score === null) {
         actionHTML = `<p class="status">In Progress – Finish before ${minutesToTime(toMinutes(event.end))}</p>`;
       }
 
       eventCard.innerHTML = `
-        <h2>${event.name || "Unnamed Event"}</h2>
+        <h2>${event.name || "Unnamed Event"}${event._upcoming ? ' <span style="font-size:0.7rem;background:rgba(255,193,7,0.15);color:#ffc107;padding:2px 8px;border-radius:6px;vertical-align:middle;">UPCOMING</span>' : ''}</h2>
         <p>${formatNow()}</p>
         <p>${minutesToTime(toMinutes(event.start))} – ${minutesToTime(toMinutes(event.end))}</p>
         <p style="font-size:0.82rem; color:#5a7fa0; font-weight:600;">🏷 ${tag}</p>
@@ -447,8 +471,8 @@ function attachAllEventListeners() {
     console.log(`   → Water button ${index} attached`);
   });
 
-  // Attach event start button listeners
-  const startBtns = document.querySelectorAll('.start-btn');
+  // Attach event start button listeners (skip disabled/locked upcoming buttons)
+  const startBtns = document.querySelectorAll('.start-btn:not([disabled])');
   console.log("🔧 [APK DEBUG] Attaching start buttons:", startBtns.length);
   startBtns.forEach((btn, index) => {
     btn.addEventListener('click', handleStartClick);
@@ -640,7 +664,7 @@ document.addEventListener("DOMContentLoaded", () => {
   updateExamCountdown();
   setInterval(updateExamCountdown, 1000);
 
-  setInterval(updateLiveUI, 15 * 1000);
+  setInterval(updateLiveUI, 60 * 1000);
 
   document.addEventListener("visibilitychange", () => {
     if (document.visibilityState === "visible") {
