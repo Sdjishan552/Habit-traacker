@@ -254,7 +254,11 @@ function render() {
         ).join("")}
       </select>
 
-      <div style="margin-top:15px; display:flex; gap:10px;">
+      <label style="display:flex; align-items:center; gap:8px; margin-top:6px; cursor:pointer;">
+        <input type="checkbox" class="nextDay" ${event.nextDay ? 'checked' : ''}
+               style="width:16px; height:16px; accent-color:#e10600;">
+        <span style="font-size:0.85rem; color:#aaa;">🌙 Ends Next Day <span style="color:#666;">(e.g. starts 10 PM, ends 1 AM)</span></span>
+      </label>
         <button onclick="saveEvent(${i})">💾 Save</button>
         <button onclick="removeEvent(${i})">🗑 Delete</button>
       </div>
@@ -274,18 +278,20 @@ function saveEvent(index) {
   const end   = row.querySelector(".end").value;
   const phase = Number(row.querySelector(".phase").value);
   const tag   = row.querySelector(".tag").value || "General";
+  const nextDay = row.querySelector(".nextDay").checked;
 
   if (!name || !start || !end) {
     alert("Fill all fields.");
     return;
   }
 
-  if (timeToMinutes(start) >= timeToMinutes(end)) {
-    alert("Start must be before End.");
+  // Only enforce start < end for same-day events
+  if (!nextDay && timeToMinutes(start) >= timeToMinutes(end)) {
+    alert("Start must be before End.\n\nIf this event ends past midnight, tick the '🌙 Ends Next Day' checkbox.");
     return;
   }
 
-  timetable[index] = { name, start, end, phase, tag };
+  timetable[index] = { name, start, end, phase, tag, ...(nextDay ? { nextDay: true } : {}) };
   localStorage.setItem("timetable", JSON.stringify(timetable));
   localStorage.setItem("timetableUpdated", Date.now());
 
@@ -323,7 +329,8 @@ function addEvent() {
     start: "",
     end: "",
     phase: 1,
-    tag: "General"
+    tag: "General",
+    nextDay: false
   });
 
   render();
