@@ -159,6 +159,10 @@ function getTimetable() {
 
       const startMin = toMinutes(e.start);
       const endMin = toMinutes(e.end);
+
+      // ✅ FIX: Allow nextDay events (end < start is valid if nextDay flag is set)
+      if (e.nextDay) return !isNaN(startMin) && !isNaN(endMin);
+
       return !isNaN(startMin) && !isNaN(endMin) && startMin < endMin;
     });
 
@@ -180,13 +184,51 @@ function getCurrentMainEvent() {
   const log = getLog();
 
   return timetable.filter(e => {
-    const start = toMinutes(e.start);
-    const end   = toMinutes(e.end);
-    // Show if active OR within grace period AND not yet logged
+    let start = toMinutes(e.start);
+    let end   = toMinutes(e.end);
+
+    // ✅ FIX: nextDay events — their "end" time is on the next calendar day
+    // We represent this as end + 1440 (minutes in a day)
+    // We check against current time ONLY if we're in the post-midnight window (now < 360 = before 6am)
+    if (e.nextDay) {
+      // This event runs from e.g. 22:00 (yesterday evening) to 01:00 (tonight/this morning)
+      // It should show: either now is after start (last night), OR now is before end (this morning)
+      const endNextDay = end; // e.g. 60 = 1:00 AM
+      const isPostMidnight = now < 360; // before 6am = we're in the "continuation" window
+
+      if (isPostMidnight) {
+        // We're past midnight — show if we haven't passed the end time yet
+        const inWindow = now < endNextDay;
+        const inGrace = now >= endNextDay && now < endNextDay + GRACE_MINUTES;
+        const alreadyLogged = log.some(l => l.name === e.name);
+        // Use yesterday's log for nextDay events
+        const yesterdayKey = getYesterdayKey();
+        const yesterdayLog = JSON.parse(localStorage.getItem(yesterdayKey) || "[]");
+        const loggedYesterday = yesterdayLog.some(l => l.name === e.name);
+        return (inWindow || (inGrace && !loggedYesterday)) && !alreadyLogged;
+      } else {
+        // We're in the evening — show if now is past start time
+        const inWindow = now >= start;
+        const alreadyLogged = log.some(l => l.name === e.name);
+        // Check yesterday's log too (in case they already logged it last night)
+        const yesterdayKey = getYesterdayKey();
+        const yesterdayLog = JSON.parse(localStorage.getItem(yesterdayKey) || "[]");
+        const loggedYesterday = yesterdayLog.some(l => l.name === e.name);
+        return inWindow && !alreadyLogged && !loggedYesterday;
+      }
+    }
+
+    // Normal (same-day) events
     const inGrace = now >= end && now < end + GRACE_MINUTES;
     const alreadyLogged = log.some(l => l.name === e.name);
     return (now >= start && now < end) || (inGrace && !alreadyLogged);
   });
+}
+
+function getYesterdayKey() {
+  const d = new Date();
+  d.setDate(d.getDate() - 1);
+  return d.toISOString().split("T")[0];
 }
 
 
@@ -269,6 +311,9 @@ function render() {
     }
 
     container.innerHTML = ""; // clear old content
+
+    // ✅ CRITICAL FIX: Declare activeEvents HERE so it's available throughout render()
+    const activeEvents = getCurrentMainEvent();
     
     // ✅ Check if tracking is active for today
     if (!isTrackingActiveToday()) {
@@ -479,7 +524,36 @@ function autoMiss() {
 
     const slotKey = `${todayKey()}_${event.name}_start`;
 
-    // ✅ NEW: Auto notify when event start time arrives
+    // ✅ Handle nextDay events specially
+    if (event.nextDay) {
+      const isPostMidnight = now < 360;
+      const endEffective = endMin; // e.g. 60 = 1am
+
+      if (isPostMidnight) {
+        // Auto-miss if past end + grace and not logged
+        if (now >= endEffective + GRACE_MINUTES && !entry) {
+          log.push({
+            name: event.name, phase: event.phase,
+            tag: event.tag || "General", delay: 999, score: 0, autoMissed: true
+          });
+        }
+        if (entry && entry.started && entry.score === null && now >= endEffective + GRACE_MINUTES) {
+          finalizeMainEvent(entry);
+        }
+      } else {
+        // Evening side: notify when start arrives
+        if (now >= startMin && !entry) {
+          if (!localStorage.getItem("notified_" + slotKey)) {
+            notify("⏰ Event Started", `${event.name} has started`, slotKey);
+            playAlertSound(slotKey);
+            localStorage.setItem("notified_" + slotKey, "yes");
+          }
+        }
+      }
+      return; // skip normal processing below
+    }
+
+    // Normal events
     if (now >= startMin && now < endMin && !entry) {
       if (!localStorage.getItem("notified_" + slotKey)) {
 
