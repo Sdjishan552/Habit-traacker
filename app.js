@@ -189,28 +189,59 @@ function getCurrentMainEvent() {
     let end   = toMinutes(e.end);
 
     // ✅ FIX: nextDay events
+    // A nextDay event belongs to YESTERDAY's schedule and runs past midnight into today.
+    // It should ONLY appear on the post-midnight side (i.e., when today's date is the day AFTER
+    // the schedule date it belongs to). We detect this by checking whether yesterday has a log
+    // entry for this event's parent day, or more simply: only show post-midnight side when
+    // the current REAL clock hour is between midnight and the event's end time (early morning).
     if (e.nextDay) {
-      const endNextDay = end;
-      const isPostMidnight = now < 360;
+      const endNextDay = end; // e.g. 90 = 1:30 AM
+      const todayDate  = new Date();
+      const currentHour = todayDate.getHours();
 
-      if (isPostMidnight) {
-        const inWindow = now < endNextDay;
-        const inGrace = now >= endNextDay && now < endNextDay + GRACE_MINUTES;
+      // "Post-midnight side": it's early morning (before the event's end time + grace),
+      // AND we are actually past midnight (i.e. date has ticked over to the next day).
+      // We confirm it's the next day by checking yesterday's timetable had this event.
+      const yesterdayKey = getYesterdayKey();
+      const yesterdayLog = JSON.parse(localStorage.getItem(yesterdayKey) || "[]");
+      const loggedYesterday = yesterdayLog.some(l => l.name === e.name);
+
+      // isPostMidnightSide: clock is before the end time (early morning) AND
+      // we haven't crossed 6 AM yet (reasonable cutoff for overnight events).
+      const isPostMidnightSide = now < 360; // before 6 AM
+
+      if (isPostMidnightSide) {
+        // Only show if it genuinely belongs to yesterday (yesterday had this event in timetable)
+        // OR yesterday's log doesn't have it yet (it was never started).
+        // Key fix: only show here when the event HASN'T already been completed yesterday.
         const alreadyLogged = log.some(l => l.name === e.name);
-        const yesterdayKey = getYesterdayKey();
-        const yesterdayLog = JSON.parse(localStorage.getItem(yesterdayKey) || "[]");
-        const loggedYesterday = yesterdayLog.some(l => l.name === e.name);
+        const inWindow = now < endNextDay;
+        const inGrace  = now >= endNextDay && now < endNextDay + GRACE_MINUTES;
+
+        // Don't show if already logged yesterday (completed before midnight on prev day)
+        if (loggedYesterday) {
+          e._upcoming = false;
+          return false;
+        }
+
         e._upcoming = false;
-        return (inWindow || (inGrace && !loggedYesterday)) && !alreadyLogged;
+        return (inWindow || inGrace) && !alreadyLogged;
       } else {
+        // Evening side (same day as schedule, before midnight):
+        // Show the card only when we're within PREVIEW_MINUTES of the start OR past start.
+        // This is the normal "upcoming" preview on the evening of the schedule day.
         const inPreview = now >= start - PREVIEW_MINUTES && now < start;
         const inWindow  = now >= start;
         const alreadyLogged = log.some(l => l.name === e.name);
-        const yesterdayKey = getYesterdayKey();
-        const yesterdayLog = JSON.parse(localStorage.getItem(yesterdayKey) || "[]");
-        const loggedYesterday = yesterdayLog.some(l => l.name === e.name);
+
+        // Don't show if it was already logged yesterday (edge case: previous cycle)
+        if (loggedYesterday) {
+          e._upcoming = false;
+          return false;
+        }
+
         e._upcoming = inPreview;
-        return (inWindow || inPreview) && !alreadyLogged && !loggedYesterday;
+        return (inWindow || inPreview) && !alreadyLogged;
       }
     }
 
@@ -550,11 +581,19 @@ function autoMiss() {
 
     // ✅ Handle nextDay events specially
     if (event.nextDay) {
-      const isPostMidnight = now < 360;
-      const endEffective = endMin; // e.g. 60 = 1am
+      const isPostMidnightSide = now < 360; // before 6 AM = we've crossed into next day
+      const endEffective = endMin; // e.g. 90 = 1:30 AM
 
-      if (isPostMidnight) {
-        // Auto-miss if past end + grace and not logged
+      const yesterdayKey = getYesterdayKey();
+      const yesterdayLog = JSON.parse(localStorage.getItem(yesterdayKey) || "[]");
+      const loggedYesterday = yesterdayLog.some(l => l.name === event.name);
+
+      if (isPostMidnightSide) {
+        // Post-midnight: this is the continuation window
+        // Skip if already completed yesterday (logged before midnight)
+        if (loggedYesterday) return;
+
+        // Auto-miss if past end + grace and not logged today either
         if (now >= endEffective + GRACE_MINUTES && !entry) {
           log.push({
             name: event.name, phase: event.phase,
@@ -565,7 +604,9 @@ function autoMiss() {
           finalizeMainEvent(entry);
         }
       } else {
-        // Evening side: notify when start arrives
+        // Evening side (same schedule day, before midnight): just notify when start arrives
+        if (loggedYesterday) return; // already done in a previous cycle
+
         if (now >= startMin && !entry) {
           if (!localStorage.getItem("notified_" + slotKey)) {
             notify("⏰ Event Started", `${event.name} has started`, slotKey);
