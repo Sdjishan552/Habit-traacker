@@ -517,10 +517,10 @@ function startMainEvent(name, start, phase, tag) {
 /* ========= FINALIZE MAIN EVENT ========= */
 function calcScore(delay) {
   // delay in minutes from event start time
-  if (delay <= 0)  return 10;  // on time or early
-  if (delay <= 9)  return 10 - delay;          // 1-9 min late: 9 down to 1
-  if (delay <= 30) return 3;   // 10-30 min late: minimum credit, you did the work
-  return 1;                    // 30+ min late: very late but still logged
+  if (delay <= 5)  return 10;              // 0-5 min late: full marks (grace window)
+  if (delay <= 15) return 10 - (delay - 5); // 6-15 min late: lose 1 point per min after grace (9 → 0)
+  if (delay <= 30) return 3;               // 16-30 min late: minimum credit, you did the work
+  return 1;                                // 30+ min late: very late but still logged
 }
 
 function finalizeMainEvent(entry) {
