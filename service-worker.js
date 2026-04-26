@@ -10,7 +10,7 @@
  * ─────────────────────────────────────────────────────────────
  */
 
-const APP_VERSION = "v4.12;                     // ← ONLY change this when you update
+const APP_VERSION = "v4.15;                     // ← ONLY change this when you update
 const CACHE_NAME  = "discipline-tracker-v4-0";  // ← keep in sync with APP_VERSION
 
 const ASSETS = [
