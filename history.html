@@ -249,12 +249,9 @@ function showDayDetails(day, stats) {
               Score: ${e.score !== null && e.score !== undefined ? e.score : 0}/10 | Delay: ${e.delay === 999 ? "Missed" : (e.delay || 0) + " min"} |
               ${e.score > 0 ? 'Completed' : (e.delay === 999 ? 'Missed' : 'Late / Partial')}
               ${e.note ? `<br><span style="font-size:0.82rem;color:#888;font-style:italic;">📝 ${e.note}</span>` : ''}
-              ${(e.delay === 999 && !e.corrected) ? `<br><button onclick="openHistoryCorrection('${day}','${(e.name||'').replace(/'/g,"\\'")}','${e.name || ''}')"
-                style="margin-top:6px;padding:5px 12px;font-size:0.78rem;
-                       background:rgba(230,126,34,0.15);color:#e67e22;
-                       border:1px solid rgba(230,126,34,0.35);border-radius:8px;cursor:pointer;">
-                ✏️ I did this
-              </button>` : ''}
+              ${(e.delay === 999 && !e.corrected) ? `<br><button
+                onclick="openHistoryCorrection('${day}', '${(e.name||'').replace(/'/g,\'\\\'\')}')"
+                style="margin-top:6px;padding:5px 12px;font-size:0.78rem;background:rgba(230,126,34,0.15);color:#e67e22;border:1px solid rgba(230,126,34,0.35);border-radius:8px;cursor:pointer;">✏️ I did this</button>` : ''}
             </li>
           `).join('')}
         </ul>
@@ -264,70 +261,58 @@ function showDayDetails(day, stats) {
 }
 
 /* ========= HISTORY CORRECTION MODAL ========= */
-function openHistoryCorrection(dayKey, eventNameEscaped, eventName) {
-  const existing = document.getElementById("histCorrModal");
+function openHistoryCorrection(dayKey, eventName) {
+  var existing = document.getElementById('histCorrModal');
   if (existing) existing.remove();
 
-  const timetable = JSON.parse(localStorage.getItem("timetable") || "[]");
-  const ev = timetable.find(e => e.name === eventName);
-  const scheduledStart = ev ? ev.start : "00:00";
+  var timetable = JSON.parse(localStorage.getItem('timetable') || '[]');
+  var ev = timetable.find(function(e) { return e.name === eventName; });
+  var scheduledStart = ev ? ev.start : '00:00';
 
   function fmt12(t) {
-    const [h,m] = t.split(":").map(Number);
-    const ap = h>=12?"PM":"AM"; const h12=h%12||12;
-    return `${h12}:${m.toString().padStart(2,"0")} ${ap}`;
+    if (!t) return '';
+    var parts = t.split(':').map(Number);
+    var h = parts[0], m = parts[1];
+    var ap = h >= 12 ? 'PM' : 'AM';
+    var h12 = h % 12 || 12;
+    return h12 + ':' + (m < 10 ? '0' : '') + m + ' ' + ap;
   }
 
-  const modal = document.createElement("div");
-  modal.id = "histCorrModal";
-  modal.style.cssText = `
-    position:fixed;inset:0;z-index:9999;
-    background:rgba(0,0,0,0.78);backdrop-filter:blur(6px);
-    display:flex;align-items:center;justify-content:center;padding:20px;
-  `;
-  modal.innerHTML = `
-    <div style="background:#141414;border-radius:18px;padding:28px 24px;
-                width:100%;max-width:360px;border:1px solid #2a2a2a;
-                box-shadow:0 24px 60px rgba(0,0,0,0.8);">
-      <h2 style="margin:0 0 6px;color:#f0f0f0;font-size:1.1rem;">✏️ Correct Past Event</h2>
-      <p style="color:#888;font-size:0.85rem;margin:0 0 18px;">
-        <strong style="color:#e67e22;">${eventName}</strong><br>
-        Day: <strong>${dayKey.split('-').reverse().join('-')}</strong><br>
-        Scheduled start: <strong>${fmt12(scheduledStart)}</strong>
-      </p>
-      <label style="font-size:0.78rem;color:#666;display:block;margin-bottom:4px;">Actual start time</label>
-      <input id="histCorrTime" type="time" value="${scheduledStart}"
-        style="width:100%;padding:10px 12px;border-radius:10px;border:1px solid #2a2a2a;
-               background:#1a1a1a;color:#d0d0d0;font-size:1rem;margin-bottom:16px;" />
-      <p style="font-size:0.75rem;color:#555;margin:0 0 18px;">Score and delay will be recalculated.</p>
-      <div style="display:flex;gap:10px;">
-        <button onclick="document.getElementById('histCorrModal').remove()"
-          style="flex:1;padding:11px;border-radius:12px;background:#1a1a1a;
-                 color:#aaa;border:1px solid #2a2a2a;font-weight:600;cursor:pointer;">Cancel</button>
-        <button onclick="applyHistoryCorrection('${dayKey}','${eventNameEscaped}')"
-          style="flex:2;padding:11px;border-radius:12px;
-                 background:linear-gradient(135deg,#e67e22,#c0392b);
-                 color:#fff;border:none;font-weight:700;cursor:pointer;">✅ Apply</button>
-      </div>
-    </div>
-  `;
+  var modal = document.createElement('div');
+  modal.id = 'histCorrModal';
+  modal.style.cssText = 'position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,0.78);backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center;padding:20px;';
+  modal.innerHTML =
+    '<div style="background:#141414;border-radius:18px;padding:28px 24px;width:100%;max-width:360px;border:1px solid #2a2a2a;box-shadow:0 24px 60px rgba(0,0,0,0.8);">' +
+    '<h2 style="margin:0 0 6px;color:#f0f0f0;font-size:1.1rem;">✏️ Correct Past Event</h2>' +
+    '<p style="color:#888;font-size:0.85rem;margin:0 0 18px;">' +
+    '<strong style="color:#e67e22;">' + eventName + '</strong><br>' +
+    'Day: <strong>' + dayKey.split(\'-\').reverse().join(\'-\') + '</strong><br>' +
+    'Scheduled start: <strong>' + fmt12(scheduledStart) + '</strong></p>' +
+    '<label style="font-size:0.78rem;color:#666;display:block;margin-bottom:4px;">Actual start time</label>' +
+    '<input id="histCorrTime" type="time" value="' + scheduledStart + '" style="width:100%;padding:10px 12px;border-radius:10px;border:1px solid #2a2a2a;background:#1a1a1a;color:#d0d0d0;font-size:1rem;margin-bottom:16px;" />' +
+    '<p style="font-size:0.75rem;color:#555;margin:0 0 18px;">Score and delay will be recalculated.</p>' +
+    '<div style="display:flex;gap:10px;">' +
+    '<button onclick="document.getElementById(\'histCorrModal\').remove()" style="flex:1;padding:11px;border-radius:12px;background:#1a1a1a;color:#aaa;border:1px solid #2a2a2a;font-weight:600;cursor:pointer;">Cancel</button>' +
+    '<button onclick="applyHistoryCorrection(\''+dayKey+'\',\''+eventName.replace(/\'/g,\'\\\'\')+'\')" style="flex:2;padding:11px;border-radius:12px;background:linear-gradient(135deg,#e67e22,#c0392b);color:#fff;border:none;font-weight:700;cursor:pointer;">✅ Apply</button>' +
+    '</div></div>';
+
   document.body.appendChild(modal);
-  modal.addEventListener("click", e => { if (e.target === modal) modal.remove(); });
+  modal.addEventListener('click', function(e) { if (e.target === modal) modal.remove(); });
 }
 
 function applyHistoryCorrection(dayKey, eventName) {
-  const timeVal = document.getElementById("histCorrTime").value;
-  if (!timeVal) { alert("Please enter a time."); return; }
+  var timeVal = document.getElementById('histCorrTime').value;
+  if (!timeVal) { alert('Please enter a time.'); return; }
 
-  const timetable = JSON.parse(localStorage.getItem("timetable") || "[]");
-  const ev = timetable.find(e => e.name === eventName);
-  if (!ev) { alert("Event not found in timetable."); return; }
+  var timetable = JSON.parse(localStorage.getItem('timetable') || '[]');
+  var ev = timetable.find(function(e) { return e.name === eventName; });
+  if (!ev) { alert('Event not found in timetable.'); return; }
 
-  const log = JSON.parse(localStorage.getItem(dayKey) || "[]");
-  const entry = log.find(e => e.name === eventName);
-  if (!entry) { alert("Log entry not found."); return; }
+  var log = JSON.parse(localStorage.getItem(dayKey) || '[]');
+  var entry = log.find(function(e) { return e.name === eventName; });
+  if (!entry) { alert('Log entry not found.'); return; }
 
-  function toMin(t) { const [h,m]=t.split(":").map(Number); return h*60+m; }
+  function toMin(t) { var p=t.split(':').map(Number); return p[0]*60+p[1]; }
   function calcSc(d) {
     if (d<=5) return 10;
     if (d<=15) return 10-(d-5);
@@ -335,19 +320,19 @@ function applyHistoryCorrection(dayKey, eventName) {
     return 1;
   }
 
-  const delay = Math.max(0, toMin(timeVal) - toMin(ev.start));
+  var delay = Math.max(0, toMin(timeVal) - toMin(ev.start));
   entry.delay = delay;
   entry.score = calcSc(delay);
   entry.corrected = true;
   entry.correctedAt = new Date().toLocaleString();
   entry.correctedStartTime = timeVal;
   delete entry.autoMissed;
-  entry.started = entry.started || new Date().toLocaleString();
+  if (!entry.started) entry.started = new Date().toLocaleString();
 
   localStorage.setItem(dayKey, JSON.stringify(log));
-  document.getElementById("histCorrModal").remove();
-  alert(`✅ Corrected! "${eventName}" → Delay: ${delay} min | Score: ${entry.score}/10`);
-  location.reload(); // reload to show updated data
+  document.getElementById('histCorrModal').remove();
+  alert('✅ Corrected! "' + eventName + '" \u2192 Delay: ' + delay + ' min | Score: ' + entry.score + '/10');
+  location.reload();
 }
 
 /* ========= NAV ========= */
