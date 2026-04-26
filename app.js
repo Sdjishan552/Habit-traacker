@@ -228,20 +228,20 @@ function getCurrentMainEvent() {
         return (inWindow || inGrace) && !alreadyLogged;
       } else {
         // Evening side (same day as schedule, before midnight):
-        // Show the card only when we're within PREVIEW_MINUTES of the start OR past start.
-        // This is the normal "upcoming" preview on the evening of the schedule day.
-        const inPreview = now >= start - PREVIEW_MINUTES && now < start;
-        const inWindow  = now >= start;
+        // The event starts at midnight (start = 0 minutes).
+        // Treat midnight as 1440 so preview = within PREVIEW_MINUTES of midnight.
+        // Without this fix, (now >= 0 - 30) is always true and card shows all day.
+        const midnightMinutes = 1440;
+        const inPreview = now >= midnightMinutes - PREVIEW_MINUTES; // e.g. after 11:30 PM
         const alreadyLogged = log.some(l => l.name === e.name);
 
-        // Don't show if it was already logged yesterday (edge case: previous cycle)
         if (loggedYesterday) {
           e._upcoming = false;
           return false;
         }
 
         e._upcoming = inPreview;
-        return (inWindow || inPreview) && !alreadyLogged;
+        return inPreview && !alreadyLogged;
       }
     }
 
