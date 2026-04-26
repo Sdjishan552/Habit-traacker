@@ -369,7 +369,19 @@ function render() {
     // ✅ FIX 1: Always update phase header, even if no events
     if (phaseInfo) {
       if (activeEvents.length === 0) {
-        phaseInfo.innerText = "No Active Phase";
+        const _now = nowMinutes();
+        const _tt = getTimetable();
+        const _next = _tt
+          .filter(e => toMinutes(e.start) > _now)
+          .sort((a, b) => toMinutes(a.start) - toMinutes(b.start))[0];
+        if (_tt.length === 0) {
+          phaseInfo.innerText = "No Timetable Set";
+        } else if (_next) {
+          const _minsUntil = toMinutes(_next.start) - _now;
+          phaseInfo.innerText = "Next: " + _next.name + " in " + _minsUntil + "m";
+        } else {
+          phaseInfo.innerText = "All Done Today";
+        }
       } else {
         const phases = [...new Set(
           activeEvents.map(e => e.phase || "Unknown").filter(p => p !== "Unknown")
@@ -402,6 +414,40 @@ function render() {
             localStorage.setItem("notified_" + slotKey, "yes");
             playAlertSound(slotKey);
         }
+    }
+
+    // ✅ FIX 3: Show a helpful card when no events are active
+    if (activeEvents.length === 0) {
+      const _now2 = nowMinutes();
+      const _tt2 = getTimetable();
+      const _next2 = _tt2
+        .filter(e => toMinutes(e.start) > _now2)
+        .sort((a, b) => toMinutes(a.start) - toMinutes(b.start))[0];
+      const noEvtCard = document.createElement("div");
+      noEvtCard.className = "card";
+      noEvtCard.style.borderLeftColor = "#2a2a2a";
+      if (_tt2.length === 0) {
+        noEvtCard.innerHTML = `
+          <h2>📋 No Timetable Yet</h2>
+          <p>Go to ⚙️ Admin to add your schedule events.</p>
+        `;
+      } else if (_next2) {
+        const _mins2 = toMinutes(_next2.start) - _now2;
+        const _h = Math.floor(_mins2 / 60), _m = _mins2 % 60;
+        noEvtCard.innerHTML = `
+          <h2>⏳ Between Events</h2>
+          <p style="font-size:1rem;font-weight:600;color:#d0d0d0;">Next: <strong>${_next2.name}</strong></p>
+          <p>Starts in ${_h > 0 ? _h + "h " : ""}${_m}m &nbsp;·&nbsp; ${minutesToTime(toMinutes(_next2.start))}</p>
+          <p style="font-size:0.8rem;color:#555;">Use this time to rest or prepare.</p>
+        `;
+      } else {
+        noEvtCard.innerHTML = `
+          <h2>✅ All Events Done</h2>
+          <p>Great work today. No more scheduled events.</p>
+          <p style="font-size:0.8rem;color:#555;">Check 📘 History for your score.</p>
+        `;
+      }
+      container.appendChild(noEvtCard);
     }
 
     // ✅ FIX 3: Event cards - render ALL active events
