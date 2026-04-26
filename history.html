@@ -6,7 +6,6 @@
   <title>Discipline History</title>
   <link rel="stylesheet" href="style.css">
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <script src="app.js"></script>
   <style>
     .history-day-card {
       cursor: pointer;
@@ -77,6 +76,12 @@ footer button:hover { background: #222; color: #fff; border-color: #e10600; }
 </footer>
 
 <script>
+/* ===== LOCAL HELPERS (no app.js dependency) ===== */
+function toMinutes(t) {
+  const [h, m] = t.split(":").map(Number);
+  return h * 60 + m;
+}
+
   function getTimetable() {
   return JSON.parse(localStorage.getItem("timetable")) || [];
 }
