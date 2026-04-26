@@ -74,6 +74,11 @@
     📥 Import Timetable
   </button>
 
+  <button onclick="exportTimetable()"
+    style="background:linear-gradient(135deg,#0ea5e9,#0369a1); color:white; font-weight:700;">
+    📤 Export Timetable
+  </button>
+
   <!-- Hidden file input — accepts JSON and Excel -->
   <input type="file" id="importFileInput" accept=".json,.xlsx,.xls"
          style="display:none;" onchange="handleImportFile(event)">
@@ -500,9 +505,16 @@ function parseImportedData(rows) {
 
     const startMin = toMin(start);
     const endMin   = toMin(end);
-    if (startMin >= endMin) { console.warn(`Row ${idx+1}: start >= end, skipped`); return; }
+    const nextDay = !!(
+      keys["nextday"] === true || keys["nextday"] === "true" || keys["nextday"] === 1 ||
+      keys["next_day"] === true || keys["next_day"] === "true" || keys["next_day"] === 1 ||
+      keys["ends_next_day"] === true || keys["ends_next_day"] === "true"
+    );
 
-    validEvents.push({ name, start, end, phase, tag });
+    // For nextDay events end can be before start (e.g. 22:00 -> 01:30)
+    if (!nextDay && startMin >= endMin) { console.warn(`Row ${idx+1}: start >= end, skipped`); return; }
+
+    validEvents.push({ name, start, end, phase, tag, ...(nextDay ? { nextDay: true } : {}) });
   });
 
   return validEvents;
@@ -567,6 +579,27 @@ function confirmAndApplyImport(events) {
 }
 
 /* ================= END IMPORT ================= */
+
+function exportTimetable() {
+  var tt = loadTimetable();
+  if (tt.length === 0) {
+    alert("No timetable to export. Add some events first.");
+    return;
+  }
+  var json = JSON.stringify(tt, null, 2);
+  var blob = new Blob([json], { type: "application/json" });
+  var url  = URL.createObjectURL(blob);
+  var a    = document.createElement("a");
+  a.href     = url;
+  a.download = "timetable.json";
+  document.body.appendChild(a);
+  a.click();
+  setTimeout(function() {
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }, 300);
+  alert("\u2705 Timetable exported as timetable.json\n" + tt.length + " event(s) saved.\n\nImport this file on any device to restore your full schedule (including Ends Next Day flags).");
+}
 
 askForPin();
 
