@@ -481,41 +481,31 @@ function render() {
     });
 
     // ── MISSED-EVENT CORRECTION CARDS ──────────────────────────────
-    // Show "I did this" button for today's auto-missed events (up to 2 corrections per day)
+    // Show "I did this" for today's auto-missed events (limit 2/day)
     const correctionLog = getLog();
-    const correctionsUsedToday = parseInt(localStorage.getItem(`corrections_${todayKey()}`) || "0", 10);
+    const correctionsUsedToday = parseInt(localStorage.getItem('corrections_' + todayKey()) || '0', 10);
     const MAX_CORRECTIONS = 2;
-
-    const missedTodayForCorrection = correctionLog.filter(e =>
-      e.delay === 999 && e.name !== "Drink Water"
-    );
-
+    const missedTodayForCorrection = correctionLog.filter(e => e.delay === 999 && e.name !== 'Drink Water' && !e.corrected);
     if (missedTodayForCorrection.length > 0) {
-      const corrCard = document.createElement("div");
-      corrCard.className = "card";
-      corrCard.style.borderLeftColor = "#e67e22";
       const remaining = MAX_CORRECTIONS - correctionsUsedToday;
-      corrCard.innerHTML = `
-        <h2>⚠️ Missed Events</h2>
-        <p style="font-size:0.8rem;color:#888;">Did the app miss you? You can correct up to <strong>${MAX_CORRECTIONS}</strong> events/day.<br>
-        <span style="color:${remaining > 0 ? '#00e676' : '#e10600'};">Corrections remaining today: ${remaining}</span></p>
-        ${missedTodayForCorrection.map(e => `
-          <div style="display:flex;justify-content:space-between;align-items:center;margin-top:10px;padding:8px 0;border-top:1px solid #222;">
-            <span style="font-size:0.9rem;color:#d0d0d0;font-weight:600;">${e.name}</span>
-            ${remaining > 0
-              ? `<button class="correct-btn" data-name="${e.name}"
-                   style="padding:6px 12px;font-size:0.8rem;background:rgba(230,126,34,0.15);
-                          color:#e67e22;border:1px solid rgba(230,126,34,0.35);border-radius:10px;min-width:auto;">
-                   ✏️ I did this
-                 </button>`
-              : `<span style="font-size:0.75rem;color:#555;">No corrections left</span>`
-            }
-          </div>
-        `).join("")}
-      `;
+      const corrCard = document.createElement('div');
+      corrCard.className = 'card';
+      corrCard.style.borderLeftColor = '#e67e22';
+      corrCard.innerHTML =
+        '<h2>⚠️ Missed Events</h2>' +
+        '<p style="font-size:0.8rem;color:#888;">Forgot to tap Start? Correct up to <strong>' + MAX_CORRECTIONS + '</strong> events per day.<br>' +
+        '<span style="color:' + (remaining > 0 ? '#00e676' : '#e10600') + ';">Corrections left today: ' + remaining + '</span></p>' +
+        missedTodayForCorrection.map(function(e) {
+          return '<div style="display:flex;justify-content:space-between;align-items:center;margin-top:10px;padding:8px 0;border-top:1px solid #222;">' +
+            '<span style="font-size:0.9rem;color:#d0d0d0;font-weight:600;">' + e.name + '</span>' +
+            (remaining > 0
+              ? '<button class="correct-btn" data-name="' + e.name + '" style="padding:6px 12px;font-size:0.8rem;background:rgba(230,126,34,0.15);color:#e67e22;border:1px solid rgba(230,126,34,0.35);border-radius:10px;min-width:auto;">✏️ I did this</button>'
+              : '<span style="font-size:0.75rem;color:#555;">No corrections left</span>') +
+            '</div>';
+        }).join('');
       container.appendChild(corrCard);
     }
-    // ── END MISSED-EVENT CORRECTION CARDS ──────────────────────────
+    // ── END CORRECTION CARDS ──────────────────────────────────────
 
     // ✅ CRITICAL FIX: Attach ALL event listeners AFTER all cards are created
     // This ensures buttons work even after water card is clicked
@@ -547,8 +537,8 @@ function attachAllEventListeners() {
     console.log(`   → Start button ${index} attached`);
   });
   
-  // Attach correction ("I did this") button listeners
-  document.querySelectorAll('.correct-btn').forEach(btn => {
+  // Attach correction buttons
+  document.querySelectorAll('.correct-btn').forEach(function(btn) {
     btn.addEventListener('click', function() {
       openCorrectionModal(this.dataset.name);
     });
@@ -559,129 +549,96 @@ function attachAllEventListeners() {
 
 /* ========= START MAIN EVENT ========= */
 /* ========= RETROACTIVE CORRECTION MODAL ========= */
-// Opens a modal asking "What time did you actually start?"
 function openCorrectionModal(eventName) {
-  // Remove any existing modal
-  const existing = document.getElementById("correctionModal");
+  var existing = document.getElementById('correctionModal');
   if (existing) existing.remove();
 
-  const timetable = getTimetable();
-  const ev = timetable.find(e => e.name === eventName);
-  const scheduledStart = ev ? ev.start : "00:00"; // default fallback
-  const correctionsUsed = parseInt(localStorage.getItem(`corrections_${todayKey()}`) || "0", 10);
-  const remaining = 2 - correctionsUsed;
+  var timetable = getTimetable();
+  var ev = timetable.find(function(e) { return e.name === eventName; });
+  var scheduledStart = ev ? ev.start : '00:00';
+  var correctionsUsed = parseInt(localStorage.getItem('corrections_' + todayKey()) || '0', 10);
+  var remaining = 2 - correctionsUsed;
 
-  const modal = document.createElement("div");
-  modal.id = "correctionModal";
-  modal.style.cssText = `
-    position:fixed; inset:0; z-index:9999;
-    background:rgba(0,0,0,0.75); backdrop-filter:blur(6px);
-    display:flex; align-items:center; justify-content:center; padding:20px;
-  `;
-  modal.innerHTML = `
-    <div style="background:#141414; border-radius:18px; padding:28px 24px;
-                width:100%; max-width:360px; border:1px solid #2a2a2a;
-                box-shadow:0 24px 60px rgba(0,0,0,0.8);">
-      <h2 style="margin:0 0 6px;color:#f0f0f0;font-size:1.1rem;">✏️ Retroactive Correction</h2>
-      <p style="color:#888;font-size:0.85rem;margin:0 0 18px;">
-        <strong style="color:#e67e22;">${eventName}</strong><br>
-        Scheduled start: <strong>${formatTime12(scheduledStart)}</strong><br>
-        Enter the time you <em>actually</em> started:
-      </p>
-      <label style="font-size:0.78rem;color:#666;display:block;margin-bottom:4px;">Actual start time</label>
-      <input id="correctionTime" type="time" value="${scheduledStart}"
-        style="width:100%;padding:10px 12px;border-radius:10px;border:1px solid #2a2a2a;
-               background:#1a1a1a;color:#d0d0d0;font-size:1rem;margin-bottom:16px;" />
-      <p style="font-size:0.75rem;color:#555;margin:0 0 18px;">
-        ℹ️ Delay and score will be recalculated from this time.
-        You have <strong style="color:#e67e22;">${remaining}</strong> correction(s) remaining today.
-      </p>
-      <div style="display:flex;gap:10px;">
-        <button id="correctionCancel"
-          style="flex:1;padding:11px;border-radius:12px;background:#1a1a1a;
-                 color:#aaa;border:1px solid #2a2a2a;font-weight:600;">
-          Cancel
-        </button>
-        <button id="correctionConfirm"
-          style="flex:2;padding:11px;border-radius:12px;
-                 background:linear-gradient(135deg,#e67e22,#c0392b);
-                 color:#fff;border:none;font-weight:700;">
-          ✅ Apply Correction
-        </button>
-      </div>
-    </div>
-  `;
+  function fmt12(t) {
+    if (!t) return '';
+    var parts = t.split(':').map(Number);
+    var h = parts[0], m = parts[1];
+    var ap = h >= 12 ? 'PM' : 'AM';
+    var h12 = h % 12 || 12;
+    return h12 + ':' + (m < 10 ? '0' : '') + m + ' ' + ap;
+  }
+
+  var modal = document.createElement('div');
+  modal.id = 'correctionModal';
+  modal.style.cssText = 'position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,0.78);backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center;padding:20px;';
+  modal.innerHTML =
+    '<div style="background:#141414;border-radius:18px;padding:28px 24px;width:100%;max-width:360px;border:1px solid #2a2a2a;box-shadow:0 24px 60px rgba(0,0,0,0.8);">' +
+    '<h2 style="margin:0 0 6px;color:#f0f0f0;font-size:1.1rem;">✏️ Retroactive Correction</h2>' +
+    '<p style="color:#888;font-size:0.85rem;margin:0 0 18px;">' +
+    '<strong style="color:#e67e22;">' + eventName + '</strong><br>' +
+    'Scheduled start: <strong>' + fmt12(scheduledStart) + '</strong><br>' +
+    'Enter the time you <em>actually</em> started:</p>' +
+    '<label style="font-size:0.78rem;color:#666;display:block;margin-bottom:4px;">Actual start time</label>' +
+    '<input id="correctionTime" type="time" value="' + scheduledStart + '" style="width:100%;padding:10px 12px;border-radius:10px;border:1px solid #2a2a2a;background:#1a1a1a;color:#d0d0d0;font-size:1rem;margin-bottom:16px;" />' +
+    '<p style="font-size:0.75rem;color:#555;margin:0 0 18px;">Delay and score will be recalculated. <strong style="color:#e67e22;">' + remaining + '</strong> correction(s) left today.</p>' +
+    '<div style="display:flex;gap:10px;">' +
+    '<button id="correctionCancel" style="flex:1;padding:11px;border-radius:12px;background:#1a1a1a;color:#aaa;border:1px solid #2a2a2a;font-weight:600;">Cancel</button>' +
+    '<button id="correctionConfirm" style="flex:2;padding:11px;border-radius:12px;background:linear-gradient(135deg,#e67e22,#c0392b);color:#fff;border:none;font-weight:700;">✅ Apply Correction</button>' +
+    '</div></div>';
 
   document.body.appendChild(modal);
 
-  document.getElementById("correctionCancel").onclick = () => modal.remove();
-
-  document.getElementById("correctionConfirm").onclick = () => {
-    const timeVal = document.getElementById("correctionTime").value;
-    if (!timeVal) { alert("Please enter a time."); return; }
-
+  document.getElementById('correctionCancel').onclick = function() { modal.remove(); };
+  document.getElementById('correctionConfirm').onclick = function() {
+    var timeVal = document.getElementById('correctionTime').value;
+    if (!timeVal) { alert('Please enter a time.'); return; }
     applyCorrectionForEvent(eventName, timeVal);
     modal.remove();
   };
-
-  // Close on backdrop click
-  modal.addEventListener("click", e => { if (e.target === modal) modal.remove(); });
-}
-
-function formatTime12(timeStr) {
-  if (!timeStr) return "";
-  const [h, m] = timeStr.split(":").map(Number);
-  const ampm = h >= 12 ? "PM" : "AM";
-  const h12 = h % 12 || 12;
-  return `${h12}:${m.toString().padStart(2,"0")} ${ampm}`;
+  modal.addEventListener('click', function(e) { if (e.target === modal) modal.remove(); });
 }
 
 function applyCorrectionForEvent(eventName, actualStartTime) {
-  const log = getLog();
-  const entry = log.find(e => e.name === eventName);
+  var log = getLog();
+  var entry = log.find(function(e) { return e.name === eventName; });
   if (!entry) return;
 
-  const timetable = getTimetable();
-  const ev = timetable.find(e => e.name === eventName);
+  var timetable = getTimetable();
+  var ev = timetable.find(function(e) { return e.name === eventName; });
   if (!ev) return;
 
-  const scheduledStartMin = toMinutes(ev.start);
-  const actualStartMin = toMinutes(actualStartTime);
+  var scheduledStartMin = toMinutes(ev.start);
+  var actualStartMin = toMinutes(actualStartTime);
+  var nowMin = nowMinutes();
 
-  // Only allow corrections for times >= scheduled start and <= now
-  const nowMin = nowMinutes();
   if (actualStartMin > nowMin) {
     alert("You can't set a start time in the future.");
     return;
   }
 
-  const delay = Math.max(0, actualStartMin - scheduledStartMin);
-  const newScore = calcScore(delay);
+  var delay = Math.max(0, actualStartMin - scheduledStartMin);
+  var newScore = calcScore(delay);
 
-  // Update the entry
   entry.delay = delay;
   entry.score = newScore;
   entry.corrected = true;
   entry.correctedAt = formatNow();
   entry.correctedStartTime = actualStartTime;
-  // Remove autoMissed flag
   delete entry.autoMissed;
-  entry.started = entry.started || formatNow();
+  if (!entry.started) entry.started = formatNow();
 
   saveLog(log);
 
-  // Track correction count for today
-  const key = `corrections_${todayKey()}`;
-  const used = parseInt(localStorage.getItem(key) || "0", 10);
+  var key = 'corrections_' + todayKey();
+  var used = parseInt(localStorage.getItem(key) || '0', 10);
   localStorage.setItem(key, String(used + 1));
 
   render();
-  alert(`✅ Corrected! "${eventName}" → Delay: ${delay} min | Score: ${newScore}/10`);
+  alert('✅ Corrected! "' + eventName + '" → Delay: ' + delay + ' min | Score: ' + newScore + '/10');
 }
-
 /* ========= END CORRECTION ========= */
 
-
+function startMainEvent(name, start, phase, tag) {
   // delay from scheduled start (can be beyond event end if in grace window)
   const delay = Math.max(0, nowMinutes() - toMinutes(start));
   const log = getLog();
