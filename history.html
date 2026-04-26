@@ -189,40 +189,48 @@ const avgDelay = startedEvents.length
 }
 
 /* ========= RENDER LIST ========= */
-const container = document.getElementById("historyContainer");
-const days = getAllDays();
+function renderHistoryList() {
+  const container = document.getElementById("historyContainer");
+  container.innerHTML = "";
+  const days = getAllDays();
 
-if (days.length === 0) {
-  container.innerHTML = `
-    <div class="card">
-      <h2>No data yet</h2>
-      <p>Start following your schedule to see history.</p>
-    </div>
-  `;
-} else {
-  days.forEach(day => {
-    const stats = calcDayStats(day);
-
-    const card = document.createElement("div");
-    card.className = "card history-day-card";
-    card.innerHTML = `
-<h2>${day.split('-').reverse().join('-')}</h2>      <p><strong>Discipline Score:</strong> ${stats.percent}%</p>
-      <p>${stats.remark}</p>
-      <small>Tap to see full details</small>
+  if (days.length === 0) {
+    container.innerHTML = `
+      <div class="card">
+        <h2>No data yet</h2>
+        <p>Start following your schedule to see history.</p>
+      </div>
     `;
+  } else {
+    days.forEach(day => {
+      const stats = calcDayStats(day);
 
-    // Click to show details
-    card.onclick = () => showDayDetails(day, stats);
+      const card = document.createElement("div");
+      card.className = "card history-day-card";
+      card.innerHTML = `
+        <h2>${day.split('-').reverse().join('-')}</h2>
+        <p><strong>Discipline Score:</strong> ${stats.percent}%</p>
+        <p>${stats.remark}</p>
+        <small>Tap to see full details</small>
+      `;
 
-    container.appendChild(card);
-  });
+      // Click to show details
+      card.onclick = () => showDayDetails(day, stats);
+
+      container.appendChild(card);
+    });
+  }
 }
+
+// Initial render on page load
+renderHistoryList();
 
 /* ========= SHOW DETAILED VIEW ========= */
 function showDayDetails(day, stats) {
+  const container = document.getElementById("historyContainer");
   container.innerHTML = `
     <div style="margin: 16px 0;">
-      <button class="back-btn" onclick="location.reload()">← Back to list</button>
+      <button class="back-btn" onclick="renderHistoryList()">← Back to list</button>
     </div>
 
     <div class="card detail-card">
@@ -332,7 +340,7 @@ function applyHistoryCorrection(dayKey, eventName) {
   localStorage.setItem(dayKey, JSON.stringify(log));
   document.getElementById('histCorrModal').remove();
   alert('✅ Corrected! "' + eventName + '" \u2192 Delay: ' + delay + ' min | Score: ' + entry.score + '/10');
-  location.reload();
+  renderHistoryList();
 }
 
 /* ========= NAV ========= */
